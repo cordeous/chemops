@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChemOps – Batches</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="app-layout">
+  <nav class="sidebar">
+    <div class="sidebar-brand"><i class="bi bi-flask-fill"></i> Chem<span>Ops</span></div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section">Main</div>
+      <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+      <div class="sidebar-section">Operations</div>
+      <a href="products.html" class="sidebar-link"><i class="bi bi-box-seam"></i> Products</a>
+      <a href="batches.html" class="sidebar-link active"><i class="bi bi-layers"></i> Batches</a>
+      <a href="customers.html" class="sidebar-link"><i class="bi bi-people"></i> Customers</a>
+      <a href="orders.html" class="sidebar-link"><i class="bi bi-cart3"></i> Orders</a>
+      <a href="invoices.html" class="sidebar-link"><i class="bi bi-receipt"></i> Invoices</a>
+      <div class="sidebar-section">Analytics</div>
+      <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-line"></i> Reports</a>
+      <a href="compliance.html" class="sidebar-link"><i class="bi bi-shield-check"></i> Compliance</a>
+      <div class="sidebar-section" data-role="Admin">Admin</div>
+      <a href="admin.html" class="sidebar-link" data-role="Admin"><i class="bi bi-gear"></i> Admin Panel</a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-name" id="sidebar-user">—</div>
+      <div id="sidebar-role" class="small mt-1"></div>
+      <a href="#" class="text-danger small mt-2 d-block" id="logout-btn"><i class="bi bi-box-arrow-left"></i> Sign out</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title"><i class="bi bi-layers me-2"></i>Batches</span>
+      <button class="btn btn-sm btn-primary" id="btn-add"><i class="bi bi-plus-lg me-1"></i>Add Batch</button>
+    </div>
+    <div class="page-content">
+      <div class="filter-bar d-flex flex-wrap gap-2 align-items-center">
+        <select class="form-select form-select-sm" id="filter-product" style="max-width:250px;">
+          <option value="">All Products</option>
+        </select>
+        <div class="form-check ms-2">
+          <input class="form-check-input" type="checkbox" id="filter-expiring">
+          <label class="form-check-label small">Expiring within 30 days</label>
+        </div>
+        <button class="btn btn-sm btn-outline-primary" onclick="loadBatches()"><i class="bi bi-search"></i></button>
+      </div>
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table">
+            <thead><tr><th>Batch #</th><th>Product</th><th>Quantity</th><th>Expiration</th><th>Warehouse</th><th>Risk</th><th class="table-actions">Actions</th></tr></thead>
+            <tbody id="batches-tbody"><tr><td colspan="7" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Batch Modal -->
+<div class="modal fade" id="batch-modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="modal-title">Add Batch</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <form id="batch-form">
+          <input type="hidden" id="batch-id">
+          <div class="mb-3"><label class="form-label">Product *</label><select class="form-select" id="b-product" required><option value="">Select product...</option></select></div>
+          <div class="mb-3"><label class="form-label">Batch Number *</label><input class="form-control" id="b-number" required placeholder="BATCH-001-01"></div>
+          <div class="mb-3"><label class="form-label">Quantity *</label><input class="form-control" id="b-quantity" type="number" min="1" required></div>
+          <div class="mb-3"><label class="form-label">Expiration Date</label><input class="form-control" id="b-expiry" type="date"></div>
+          <div class="mb-3"><label class="form-label">Warehouse Location</label><input class="form-control" id="b-warehouse" placeholder="e.g. Warehouse A - Rack 2"></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" id="save-batch">Save Batch</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/batches.js"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker --version)",
+      "Bash(docker compose version)",
+      "Bash(docker-compose --version)",
+      "Bash(npm create vite@latest frontend-react -- --template react)",
+      "Bash(npm install)",
+      "Bash(npm install -D tailwindcss@3 postcss autoprefixer)",
+      "Bash(npm install react-router-dom axios recharts @headlessui/react @heroicons/react react-hot-toast)",
+      "Bash(npx tailwindcss init -p)",
+      "Bash(git init)",
+      "Bash(git remote add origin https://github.com/cordeous/chemops.git)",
+      "Bash(git remote set-url origin https://github.com/cordeous/chemops.git)",
+      "Bash(git add .)",
+      "Bash(git commit -m \"Initial commit: ChemOps full-stack chemical sales platform:*)"
+    ]
+  }
+}

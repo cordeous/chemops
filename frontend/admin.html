@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChemOps – Admin Panel</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="app-layout">
+  <nav class="sidebar">
+    <div class="sidebar-brand"><i class="bi bi-flask-fill"></i> Chem<span>Ops</span></div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section">Main</div>
+      <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+      <div class="sidebar-section">Operations</div>
+      <a href="products.html" class="sidebar-link"><i class="bi bi-box-seam"></i> Products</a>
+      <a href="batches.html" class="sidebar-link"><i class="bi bi-layers"></i> Batches</a>
+      <a href="customers.html" class="sidebar-link"><i class="bi bi-people"></i> Customers</a>
+      <a href="orders.html" class="sidebar-link"><i class="bi bi-cart3"></i> Orders</a>
+      <a href="invoices.html" class="sidebar-link"><i class="bi bi-receipt"></i> Invoices</a>
+      <div class="sidebar-section">Analytics</div>
+      <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-line"></i> Reports</a>
+      <a href="compliance.html" class="sidebar-link"><i class="bi bi-shield-check"></i> Compliance</a>
+      <div class="sidebar-section">Admin</div>
+      <a href="admin.html" class="sidebar-link active"><i class="bi bi-gear"></i> Admin Panel</a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-name" id="sidebar-user">—</div>
+      <div id="sidebar-role" class="small mt-1"></div>
+      <a href="#" class="text-danger small mt-2 d-block" id="logout-btn"><i class="bi bi-box-arrow-left"></i> Sign out</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <div class="topbar"><span class="topbar-title"><i class="bi bi-gear me-2"></i>Admin Panel</span></div>
+    <div class="page-content">
+      <ul class="nav nav-tabs mb-3" id="admin-tabs">
+        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-users">Users</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-features">Feature Flags</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-webhooks">Webhooks</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-alerts">Stock Alerts</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-audit">Audit Log</a></li>
+      </ul>
+      <div class="tab-content">
+
+        <!-- Users Tab -->
+        <div class="tab-pane fade show active" id="tab-users">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between">
+              User Management
+              <button class="btn btn-sm btn-primary" id="btn-add-user"><i class="bi bi-plus-lg me-1"></i>Add User</button>
+            </div>
+            <div class="table-responsive">
+              <table class="table">
+                <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Created</th><th class="table-actions">Actions</th></tr></thead>
+                <tbody id="users-tbody"><tr><td colspan="6" class="text-center text-muted py-3">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature Flags -->
+        <div class="tab-pane fade" id="tab-features">
+          <div class="card">
+            <div class="card-header">Feature Toggles</div>
+            <div class="card-body" id="features-body">Loading...</div>
+          </div>
+        </div>
+
+        <!-- Webhooks -->
+        <div class="tab-pane fade" id="tab-webhooks">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between">
+              Webhook Configuration
+              <button class="btn btn-sm btn-primary" id="btn-add-webhook"><i class="bi bi-plus-lg me-1"></i>Add Webhook</button>
+            </div>
+            <div class="table-responsive">
+              <table class="table">
+                <thead><tr><th>URL</th><th>Events</th><th>Status</th><th>Last Triggered</th><th class="table-actions">Actions</th></tr></thead>
+                <tbody id="webhooks-tbody"><tr><td colspan="5" class="text-center text-muted py-3">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alerts -->
+        <div class="tab-pane fade" id="tab-alerts">
+          <div class="card">
+            <div class="card-header">Low Stock Alerts</div>
+            <div class="table-responsive">
+              <table class="table">
+                <thead><tr><th>Product</th><th>Current Stock</th><th>Reorder At</th><th>Unit</th></tr></thead>
+                <tbody id="alerts-tbody"><tr><td colspan="4" class="text-center text-muted py-3">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audit Log -->
+        <div class="tab-pane fade" id="tab-audit">
+          <div class="card">
+            <div class="card-header d-flex gap-2 align-items-center">
+              Audit Log
+              <select class="form-select form-select-sm w-auto ms-auto" id="audit-entity">
+                <option value="">All entities</option>
+                <option value="Product">Product</option><option value="Order">Order</option>
+                <option value="Invoice">Invoice</option><option value="Customer">Customer</option>
+                <option value="User">User</option><option value="Batch">Batch</option>
+              </select>
+              <button class="btn btn-sm btn-outline-primary" onclick="loadAudit()"><i class="bi bi-search"></i></button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead><tr><th>Entity</th><th>Action</th><th>Changed Fields</th><th>By</th><th>Time</th></tr></thead>
+                <tbody id="audit-tbody"><tr><td colspan="5" class="text-center text-muted py-3">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- User Modal -->
+<div class="modal fade" id="user-modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="user-modal-title">Add User</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <input type="hidden" id="user-id">
+        <div class="mb-3"><label class="form-label">Full Name *</label><input class="form-control" id="u-name" required></div>
+        <div class="mb-3"><label class="form-label">Email *</label><input class="form-control" id="u-email" type="email" required></div>
+        <div class="mb-3"><label class="form-label">Role *</label>
+          <select class="form-select" id="u-role">
+            <option value="Sales">Sales</option><option value="Finance">Finance</option>
+            <option value="Compliance">Compliance</option><option value="Admin">Admin</option>
+          </select>
+        </div>
+        <div class="mb-3"><label class="form-label">Password <span id="pw-hint" class="text-muted small">(required for new user)</span></label><input class="form-control" id="u-password" type="password" placeholder="Leave blank to keep current"></div>
+        <div class="mb-3 form-check form-switch"><input class="form-check-input" type="checkbox" id="u-active" checked><label class="form-check-label">Active</label></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" id="save-user">Save User</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Webhook Modal -->
+<div class="modal fade" id="webhook-modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="wh-modal-title">Add Webhook</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <input type="hidden" id="wh-id">
+        <div class="mb-3"><label class="form-label">URL *</label><input class="form-control" id="wh-url" type="url" required placeholder="https://..."></div>
+        <div class="mb-3"><label class="form-label">Description</label><input class="form-control" id="wh-desc"></div>
+        <div class="mb-3"><label class="form-label">Events *</label>
+          <div id="wh-events">
+            <div class="form-check"><input class="form-check-input wh-event" type="checkbox" value="order.created"><label class="form-check-label small">order.created</label></div>
+            <div class="form-check"><input class="form-check-input wh-event" type="checkbox" value="order.status_changed"><label class="form-check-label small">order.status_changed</label></div>
+            <div class="form-check"><input class="form-check-input wh-event" type="checkbox" value="invoice.created"><label class="form-check-label small">invoice.created</label></div>
+            <div class="form-check"><input class="form-check-input wh-event" type="checkbox" value="invoice.paid"><label class="form-check-label small">invoice.paid</label></div>
+            <div class="form-check"><input class="form-check-input wh-event" type="checkbox" value="invoice.overdue"><label class="form-check-label small">invoice.overdue</label></div>
+            <div class="form-check"><input class="form-check-input wh-event" type="checkbox" value="product.low_stock"><label class="form-check-label small">product.low_stock</label></div>
+            <div class="form-check"><input class="form-check-input wh-event" type="checkbox" value="customer.compliance_changed"><label class="form-check-label small">customer.compliance_changed</label></div>
+          </div>
+        </div>
+        <div class="mb-3"><label class="form-label">Secret (leave blank to auto-generate)</label><input class="form-control" id="wh-secret" placeholder="Auto-generated if blank"></div>
+        <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="wh-active" checked><label class="form-check-label">Active</label></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" id="save-webhook">Save Webhook</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/admin.js"></script>
+</body>
+</html>
