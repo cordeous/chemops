@@ -1,15 +1,23 @@
-export default function KpiCard({ label, value, icon, color }) {
-  const colors = {
-    blue:   'from-[#1a2e5a] to-[#243b73]',
-    orange: 'from-[#f07c1e] to-[#d96c10]',
-    green:  'from-emerald-600 to-emerald-700',
-    red:    'from-red-600 to-red-700',
-  };
+const THEMES = {
+  blue:   { bg: 'bg-[#1a2e5a]',      text: 'text-white',      sub: 'text-white/60', ring: 'bg-white/10' },
+  orange: { bg: 'bg-[#f07c1e]',      text: 'text-white',      sub: 'text-white/60', ring: 'bg-white/10' },
+  green:  { bg: 'bg-emerald-600',    text: 'text-white',      sub: 'text-white/60', ring: 'bg-white/10' },
+  red:    { bg: 'bg-red-600',        text: 'text-white',      sub: 'text-white/60', ring: 'bg-white/10' },
+  purple: { bg: 'bg-violet-600',     text: 'text-white',      sub: 'text-white/60', ring: 'bg-white/10' },
+};
+
+export default function KpiCard({ label, value, icon, color = 'blue', sub }) {
+  const t = THEMES[color] ?? THEMES.blue;
   return (
-    <div className={`kpi-card bg-gradient-to-br ${colors[color] || colors.blue}`}>
-      <div className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-2">{label}</div>
-      <div className="text-3xl font-bold text-white">{value ?? '—'}</div>
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-5xl opacity-15 select-none">{icon}</div>
+    <div className={`kpi-card ${t.bg} flex flex-col gap-3`}>
+      <div className="flex items-center justify-between">
+        <div className={`text-xs font-semibold uppercase tracking-wider ${t.sub}`}>{label}</div>
+        <div className={`w-9 h-9 rounded-xl ${t.ring} flex items-center justify-center text-xl`}>{icon}</div>
+      </div>
+      <div>
+        <div className={`text-2xl font-bold ${t.text}`}>{value ?? '—'}</div>
+        {sub && <div className={`text-xs mt-1 ${t.sub}`}>{sub}</div>}
+      </div>
     </div>
   );
 }
