@@ -31,7 +31,7 @@ export default function Products() {
       if (search) params.search = search;
       if (filterHazardous !== '') params.isHazardous = filterHazardous;
       const res = await api.get('/products', { params });
-      setProducts(res.data?.products ?? res.data ?? []);
+      setProducts(Array.isArray(res.data?.data) ? res.data.data : []);
     } catch {
       toast.error('Failed to load products');
     } finally {
@@ -106,7 +106,7 @@ export default function Products() {
     fd.append('file', file);
     try {
       const res = await api.post('/products/import', fd);
-      toast.success(`Imported ${res.data.imported} products`);
+      toast.success(`Imported ${res.data?.data?.imported ?? res.data?.imported ?? 0} products`);
       load();
     } catch { toast.error('Import failed'); }
     e.target.value = '';

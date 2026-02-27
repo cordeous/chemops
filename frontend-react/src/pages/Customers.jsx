@@ -30,7 +30,7 @@ export default function Customers() {
       if (search) params.search = search;
       if (filterStatus) params.complianceStatus = filterStatus;
       const res = await api.get('/customers', { params });
-      setCustomers(res.data?.customers ?? res.data ?? []);
+      setCustomers(Array.isArray(res.data?.data) ? res.data.data : []);
     } catch { toast.error('Failed to load customers'); }
     finally { setLoading(false); }
   }, [search, filterStatus]);

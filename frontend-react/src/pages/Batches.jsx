@@ -35,8 +35,8 @@ export default function Batches() {
         api.get('/batches', { params: filterProduct ? { productId: filterProduct } : {} }),
         api.get('/products'),
       ]);
-      setBatches(bRes.data?.batches ?? bRes.data ?? []);
-      setProducts(pRes.data?.products ?? pRes.data ?? []);
+      setBatches(Array.isArray(bRes.data?.data) ? bRes.data.data : []);
+      setProducts(Array.isArray(pRes.data?.data) ? pRes.data.data : []);
     } catch { toast.error('Failed to load batches'); }
     finally { setLoading(false); }
   }, [filterProduct]);

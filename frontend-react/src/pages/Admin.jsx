@@ -41,11 +41,11 @@ export default function Admin() {
           api.get('/admin/alerts'),
           api.get('/audit'),
         ]);
-        setUsers(uRes.data?.users ?? uRes.data ?? []);
-        setFeatures(fRes.data ?? {});
-        setWebhooks(wRes.data?.webhooks ?? wRes.data ?? []);
-        setAlerts(aRes.data ?? []);
-        setAuditLogs(lRes.data?.logs ?? lRes.data ?? []);
+        setUsers(Array.isArray(uRes.data?.data) ? uRes.data.data : []);
+        setFeatures(!Array.isArray(fRes.data?.data) && typeof fRes.data?.data === "object" ? fRes.data.data : {});
+        setWebhooks(Array.isArray(wRes.data?.data) ? wRes.data.data : []);
+        setAlerts(Array.isArray(aRes.data?.data?.lowStock) ? aRes.data.data.lowStock : []);
+        setAuditLogs(Array.isArray(lRes.data?.data) ? lRes.data.data : []);
       } catch { toast.error('Failed to load admin data'); }
       finally { setLoading(false); }
     };
@@ -74,7 +74,7 @@ export default function Admin() {
       }
       setUserModalOpen(false);
       const res = await api.get('/admin/users');
-      setUsers(res.data?.users ?? res.data ?? []);
+      setUsers(Array.isArray(res.data?.data) ? res.data.data : []);
     } catch (err) { toast.error(err.message || 'Save failed'); }
     finally { setSavingUser(false); }
   };
@@ -116,7 +116,7 @@ export default function Admin() {
       }
       setWebhookModalOpen(false);
       const res = await api.get('/webhooks');
-      setWebhooks(res.data?.webhooks ?? res.data ?? []);
+      setWebhooks(Array.isArray(res.data?.data) ? res.data.data : []);
     } catch (err) { toast.error(err.message || 'Save failed'); }
     finally { setSavingWebhook(false); }
   };

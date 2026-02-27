@@ -18,7 +18,7 @@ export default function Invoices() {
     try {
       const params = filterStatus ? { status: filterStatus } : {};
       const res = await api.get('/invoices', { params });
-      setInvoices(res.data?.invoices ?? res.data ?? []);
+      setInvoices(Array.isArray(res.data?.data) ? res.data.data : []);
     } catch { toast.error('Failed to load invoices'); }
     finally { setLoading(false); }
   }, [filterStatus]);

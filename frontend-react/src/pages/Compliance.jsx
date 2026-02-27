@@ -19,8 +19,8 @@ export default function Compliance() {
           api.get('/compliance/sds-tracker'),
           api.get('/customers'),
         ]);
-        setSds(sdsRes.data ?? []);
-        setCustomers(custRes.data?.customers ?? custRes.data ?? []);
+        setSds(Array.isArray(sdsRes.data?.data?.products) ? sdsRes.data.data.products : Array.isArray(sdsRes.data?.data) ? sdsRes.data.data : []);
+        setCustomers(Array.isArray(custRes.data?.data) ? custRes.data.data : []);
       } catch { toast.error('Failed to load compliance data'); }
       finally { setLoading(false); }
     };

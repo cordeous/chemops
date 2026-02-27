@@ -32,9 +32,9 @@ export default function Orders() {
         api.get('/customers'),
         api.get('/products'),
       ]);
-      setOrders(oRes.data?.orders ?? oRes.data ?? []);
-      setCustomers(cRes.data?.customers ?? cRes.data ?? []);
-      setProducts(pRes.data?.products ?? pRes.data ?? []);
+      setOrders(Array.isArray(oRes.data?.data) ? oRes.data.data : []);
+      setCustomers(Array.isArray(cRes.data?.data) ? cRes.data.data : []);
+      setProducts(Array.isArray(pRes.data?.data) ? pRes.data.data : []);
     } catch { toast.error('Failed to load orders'); }
     finally { setLoading(false); }
   }, [filterStatus]);
@@ -45,7 +45,7 @@ export default function Orders() {
     if (!productId || batchesMap[productId]) return;
     try {
       const res = await api.get(`/products/${productId}/batches`);
-      setBatchesMap(prev => ({ ...prev, [productId]: res.data ?? [] }));
+      setBatchesMap(prev => ({ ...prev, [productId]: Array.isArray(res.data?.data) ? res.data.data : [] }));
     } catch { /* ignore */ }
   };
 
