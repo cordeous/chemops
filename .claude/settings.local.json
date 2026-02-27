@@ -13,7 +13,9 @@
       "Bash(git remote add origin https://github.com/cordeous/chemops.git)",
       "Bash(git remote set-url origin https://github.com/cordeous/chemops.git)",
       "Bash(git add .)",
-      "Bash(git commit -m \"Initial commit: ChemOps full-stack chemical sales platform:*)"
+      "Bash(git commit -m \"Initial commit: ChemOps full-stack chemical sales platform:*)",
+      "Bash(git push -u origin master)",
+      "Bash(curl -s http://localhost:5000/api/health)"
     ]
   }
 }

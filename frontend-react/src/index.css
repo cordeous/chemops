@@ -31,11 +31,16 @@
   .badge-shipped { @apply badge bg-cyan-100 text-cyan-800; }
   .badge-invoiced { @apply badge bg-purple-100 text-purple-800; }
   .badge-draft { @apply badge bg-gray-100 text-gray-600; }
-  .badge-hazmat { @apply badge bg-orange-100 text-orange-800; }
+  .badge-hazmat, .badge-orange { @apply badge bg-orange-100 text-orange-800; }
   .badge-admin { @apply badge bg-[#1a2e5a]/10 text-[#1a2e5a]; }
   .badge-sales { @apply badge bg-blue-100 text-blue-800; }
   .badge-finance { @apply badge bg-green-100 text-green-800; }
   .badge-compliance { @apply badge bg-purple-100 text-purple-800; }
+  .badge-red { @apply badge bg-red-100 text-red-800; }
+  .badge-green { @apply badge bg-green-100 text-green-800; }
+  .badge-blue { @apply badge bg-blue-100 text-blue-800; }
+  .badge-gray { @apply badge bg-gray-100 text-gray-600; }
+  .badge-yellow { @apply badge bg-yellow-100 text-yellow-800; }
 
   .table-th { @apply px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 whitespace-nowrap; }
   .table-td { @apply px-4 py-3 text-sm text-gray-700 align-middle; }
@@ -58,4 +63,6 @@
   .filter-bar { @apply card p-4 mb-4 flex flex-wrap gap-3 items-center; }
 
   .empty-state { @apply flex flex-col items-center justify-center py-16 text-gray-400; }
+
+  .kpi-card { @apply relative overflow-hidden rounded-xl p-5 shadow-sm; }
 }
