@@ -1,411 +1,181 @@
-ChemOps – Chemical Sales & Billing Management Platform
+# ChemOps — Chemical Sales & Billing Management Platform
 
-ChemOps is a full-stack web application designed specifically for the chemical industry to manage product catalogs, regulatory compliance, sales operations, and invoicing in a single, centralized system.
+A full-stack web application built for the chemical industry to manage product catalogs, regulatory compliance, sales operations, batch tracking, and invoicing in a single centralized system.
 
-The platform enables real-time operational visibility, ensures compliance documentation tracking (SDS, hazard classifications), and streamlines the order-to-cash lifecycle.
+**Live demo:** [cordeous.github.io/chemops](https://cordeous.github.io/chemops/)
+**GitHub:** [github.com/cordeous/chemops](https://github.com/cordeous/chemops)
 
-🚀 Overview
+---
 
-Chemical companies require more than generic invoicing software. They need:
+## Stack
 
-CAS & UN number tracking
+| Layer | Technology |
+|---|---|
+| Frontend | React 18 + Vite + Tailwind CSS |
+| Backend | Node.js + Express |
+| Database | MongoDB (Atlas) |
+| Auth | JWT (7-day expiry, localStorage) |
+| Deployment | GitHub Pages (frontend) |
 
-Hazard classification management
+---
 
-SDS documentation storage
+## Features
 
-Batch-level traceability
+- **Role-based dashboards** — Admin, Sales, Finance, Compliance each get a tailored view
+- **Product management** — CAS/UN numbers, hazard classification, SDS documents, inventory levels
+- **Batch tracking** — expiry badges, warehouse location, per-product batch history
+- **Order lifecycle** — multi-item builder, auto-pricing, tax calc, status transitions (Pending → Approved → Shipped → Invoiced → Paid)
+- **Invoicing** — auto-generated from orders, PDF export, Mark Paid, overdue detection
+- **Customer management** — compliance status, credit limits, address book, full CRUD
+- **Compliance** — SDS tracker, regulatory CSV export, customer verification workflow
+- **Reports & analytics** — sales trends, top customers, inventory turnover, hazmat sales, outstanding receivables
+- **Admin panel** — user management, feature flags, webhook config, audit log, low-stock alerts
+- **Landing page** — public marketing page at `/`
 
-Customer compliance validation
+---
 
-Regulatory-aware invoicing
+## Demo Accounts
 
-ChemOps delivers all of this with a modern web architecture built using:
+| Role | Email | Password |
+|---|---|---|
+| Admin | admin@chemops.com | admin123 |
+| Sales | sales@chemops.com | sales123 |
+| Finance | finance@chemops.com | finance123 |
+| Compliance | compliance@chemops.com | compliance123 |
 
-Frontend: HTML, CSS, JavaScript, Bootstrap
+---
 
-Backend: Node.js, Express
+## Local Development
 
-Database: MongoDB
+### Prerequisites
 
-Deployment: Firebase Hosting + MongoDB Atlas
+- Node.js 18+
+- MongoDB Atlas account (or local MongoDB)
 
-🎯 Core Features
-1️⃣ Advanced Chemical Product Management
+### 1. Clone
 
-Chemical catalog with:
-
-Chemical Name
-
-CAS Number
-
-UN Number
-
-Hazard Classification
-
-Storage Requirements
-
-SDS document upload & storage
-
-Batch tracking
-
-Expiration date monitoring
-
-Multi-unit measurement support (kg, L, drums, pallets)
-
-Warehouse-level inventory tracking
-
-2️⃣ Sales & Invoicing
-
-Customer management (credit limits, compliance flags)
-
-Quote → Order → Invoice workflow
-
-Automatic tax calculations
-
-Invoice status tracking (Draft, Issued, Paid, Overdue)
-
-Multi-currency support
-
-PDF invoice export
-
-3️⃣ Operational Efficiency
-
-Low-stock alerts
-
-Automated reorder suggestions
-
-Order status pipeline
-
-Batch traceability reports
-
-4️⃣ Reporting & Analytics
-
-Revenue dashboard
-
-Product margin analysis
-
-Inventory turnover metrics
-
-Outstanding receivables tracking
-
-Expiration risk reporting
-
-5️⃣ Security & Compliance
-
-Role-Based Access Control (Admin, Sales, Finance, Compliance)
-
-JWT authentication
-
-Audit logs for all financial & product changes
-
-Secure database connections
-
-Compliance validation before order approval
-
-6️⃣ Enterprise Integration
-
-REST API for ERP integration
-
-CSV import/export
-
-Accounting export format (QuickBooks/Xero compatible)
-
-Webhook support
-
-🧱 System Architecture
-Frontend
-
-Built with HTML, CSS, Bootstrap, and JavaScript
-
-Responsive UI
-
-Dashboard visualizations
-
-REST API integration
-
-Backend
-
-Node.js + Express
-
-Business logic layer
-
-Authentication middleware
-
-Validation layer
-
-Audit logging
-
-Database
-
-MongoDB (MongoDB Atlas for cloud deployment)
-
-Document-based schema
-
-Indexed collections for performance
-
-Deployment
-
-Firebase Hosting (Frontend)
-
-Backend via Firebase Functions or cloud Node server
-
-MongoDB Atlas (Database)
-
-🗄 Database Structure (High-Level)
-
-Users
-
-_id
-
-name
-
-email
-
-role
-
-passwordHash
-
-createdAt
-
-Products
-
-_id
-
-name
-
-CASNumber
-
-UNNumber
-
-hazardClassification
-
-storageRequirements
-
-sdsDocumentUrl
-
-unitOfMeasure
-
-createdAt
-
-Batches
-
-_id
-
-productId
-
-batchNumber
-
-quantity
-
-expirationDate
-
-warehouseLocation
-
-Customers
-
-_id
-
-companyName
-
-taxId
-
-creditLimit
-
-complianceStatus
-
-address
-
-Orders
-
-_id
-
-customerId
-
-items[]
-
-status
-
-totalAmount
-
-createdAt
-
-Invoices
-
-_id
-
-orderId
-
-invoiceNumber
-
-taxAmount
-
-totalAmount
-
-status
-
-dueDate
-
-AuditLogs
-
-_id
-
-entityType
-
-entityId
-
-action
-
-userId
-
-timestamp
-
-🔐 Roles & Permissions
-Role	Capabilities
-Admin	Full system access
-Sales	Manage customers, orders, invoices
-Finance	Manage invoices, payments
-Compliance	Manage SDS, hazard data, compliance flags
-⚙️ Installation & Setup
-1️⃣ Clone the Repository
-git clone https://github.com/yourusername/chemops.git
+```bash
+git clone https://github.com/cordeous/chemops.git
 cd chemops
-2️⃣ Backend Setup
+```
+
+### 2. Backend
+
+```bash
 cd backend
 npm install
+```
 
-Create a .env file:
+Create `backend/.env`:
 
+```
 PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
+MONGO_URI=mongodb+srv://<user>:<pass>@cluster0.jn2jfkn.mongodb.net/chemops?retryWrites=true&w=majority
+JWT_SECRET=your_jwt_secret_here
+```
 
-Run backend:
+Seed the database (first time only):
 
+```bash
+node seed.js
+```
+
+Start backend:
+
+```bash
 npm run dev
-3️⃣ Frontend Setup
+```
 
-If using static hosting:
+Backend runs at `http://localhost:5000`
 
-cd frontend
+### 3. Frontend
 
-Open index.html in your browser
-OR deploy using Firebase.
+```bash
+cd frontend-react
+npm install
+npm run dev
+```
 
-4️⃣ Firebase Deployment
+Frontend runs at `http://localhost:5173`
 
-Install Firebase CLI:
+---
 
-npm install -g firebase-tools
+## Project Structure
 
-Login and initialize:
+```
+chemops/
+├── backend/
+│   ├── src/
+│   │   ├── routes/          # Express route handlers
+│   │   ├── models/          # Mongoose schemas
+│   │   └── middleware/      # Auth, audit, validation
+│   ├── server.js            # Express entry point (port 5000)
+│   └── seed.js              # Database seed script
+│
+├── frontend-react/
+│   ├── src/
+│   │   ├── api/client.js    # Axios instance + auth interceptor
+│   │   ├── context/         # AuthContext (JWT, user state)
+│   │   ├── components/      # Layout, Sidebar, Modal, KpiCard, etc.
+│   │   ├── pages/           # One file per route
+│   │   │   └── dashboards/  # Role-specific dashboard components
+│   │   └── utils/format.js  # Currency, date, status helpers
+│   └── vite.config.js
+│
+└── .github/workflows/
+    └── deploy.yml           # CI/CD → GitHub Pages
+```
 
-firebase login
-firebase init
+---
 
-Deploy:
+## API Overview
 
-firebase deploy
-📊 API Structure (Example Endpoints)
+All endpoints require `Authorization: Bearer <token>` except `/api/auth/login`.
+All responses return `{ success: bool, data: ... }`.
 
-Auth
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/login` | Login, returns JWT |
+| GET | `/api/products` | List products (search, filter) |
+| POST | `/api/products` | Create product |
+| GET | `/api/batches` | List batches |
+| GET | `/api/customers` | List customers |
+| POST | `/api/orders` | Create order |
+| PUT | `/api/orders/:id/status` | Advance order status |
+| GET | `/api/invoices` | List invoices |
+| GET | `/api/invoices/:id/pdf` | Download PDF |
+| PUT | `/api/invoices/:id/status` | Mark paid / issue |
+| GET | `/api/reports/sales` | Monthly revenue |
+| GET | `/api/reports/top-customers` | Top customers by spend |
+| GET | `/api/compliance/sds-tracker` | SDS completeness |
+| GET | `/api/admin/users` | User list (Admin only) |
+| PUT | `/api/admin/features` | Toggle feature flags |
 
-POST /api/auth/register
+---
 
-POST /api/auth/login
+## Deployment
 
-Products
+Frontend deploys automatically to GitHub Pages on every push to `master` via GitHub Actions.
 
-GET /api/products
+To enable for your fork:
+1. Go to **Settings → Pages**
+2. Set Source to **GitHub Actions**
 
-POST /api/products
+The workflow builds with `VITE_API_URL` pointing to the backend. For a fully live deployment, host the backend on Railway, Render, or similar.
 
-PUT /api/products/:id
+---
 
-DELETE /api/products/:id
+## Roles & Permissions
 
-Orders
+| Role | Access |
+|---|---|
+| Admin | Full access — users, features, audit log, all data |
+| Sales | Customers, orders, limited product view |
+| Finance | Invoices, payments, revenue reports |
+| Compliance | SDS tracker, compliance status, regulatory export |
 
-POST /api/orders
+---
 
-GET /api/orders/:id
+## License
 
-Invoices
-
-POST /api/invoices
-
-PUT /api/invoices/:id/status
-
-📈 Performance Goals
-
-API response time < 500ms
-
-Dashboard load time < 3 seconds
-
-99% uptime target
-
-Support 10,000+ SKUs
-
-Support 100+ concurrent users
-
-🧪 MVP Scope
-
-Included:
-
-Product management
-
-Customer management
-
-Order workflow
-
-Invoice generation
-
-Basic dashboard
-
-Role-based authentication
-
-Excluded:
-
-AI forecasting
-
-Mobile app
-
-Full ERP integration
-
-Advanced predictive analytics
-
-🔮 Future Enhancements
-
-AI demand forecasting
-
-Automated regulatory updates
-
-Mobile warehouse scanning
-
-Multi-warehouse optimization
-
-Advanced analytics engine
-
-🏗 Why ChemOps?
-
-ChemOps is built specifically for the chemical industry — not adapted from generic billing tools.
-
-It combines:
-
-Regulatory compliance
-
-Batch traceability
-
-Financial workflow automation
-
-Real-time analytics
-
-Modern cloud-native architecture
-
-📜 License
-
-MIT License
-
-👨‍💻 Author
-
-Developed as a portfolio-grade full-stack application focused on industry-specific SaaS architecture, compliance-aware systems, and scalable backend design.
+MIT
