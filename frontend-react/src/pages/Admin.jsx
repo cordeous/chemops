@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '../api/client';
 import Layout from '../components/Layout';
 import Modal from '../components/Modal';
+import ConfirmDialog from '../components/ConfirmDialog';
 import StatusBadge from '../components/StatusBadge';
 import { formatDate } from '../utils/format';
 import toast from 'react-hot-toast';
@@ -29,6 +30,7 @@ export default function Admin() {
   const [editingWebhook, setEditingWebhook] = useState(null);
   const [webhookForm, setWebhookForm] = useState(EMPTY_WEBHOOK);
   const [savingWebhook, setSavingWebhook] = useState(false);
+  const [confirmWebhookId, setConfirmWebhookId] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -120,10 +122,13 @@ export default function Admin() {
     } catch (err) { toast.error(err.message || 'Save failed'); }
     finally { setSavingWebhook(false); }
   };
-  const deleteWebhook = async (id) => {
-    if (!confirm('Delete this webhook?')) return;
-    try { await api.delete(`/webhooks/${id}`); setWebhooks(prev => prev.filter(w => w._id !== id)); toast.success('Webhook deleted'); }
-    catch { toast.error('Delete failed'); }
+  const deleteWebhook = async () => {
+    try {
+      await api.delete(`/webhooks/${confirmWebhookId}`);
+      setWebhooks(prev => prev.filter(w => w._id !== confirmWebhookId));
+      toast.success('Webhook deleted');
+      setConfirmWebhookId(null);
+    } catch { toast.error('Delete failed'); }
   };
   const testWebhook = async (id) => {
     try { await api.post(`/webhooks/${id}/test`); toast.success('Test payload sent'); }
@@ -246,7 +251,7 @@ export default function Admin() {
                           <div className="flex gap-2">
                             <button onClick={() => openEditWebhook(w)} className="text-xs text-[#1a2e5a] hover:underline">Edit</button>
                             <button onClick={() => testWebhook(w._id)} className="text-xs text-[#f07c1e] hover:underline">Test</button>
-                            <button onClick={() => deleteWebhook(w._id)} className="text-xs text-red-400 hover:underline">Delete</button>
+                            <button onClick={() => setConfirmWebhookId(w._id)} className="text-xs text-red-400 hover:underline">Delete</button>
                           </div>
                         </td>
                       </tr>
@@ -317,6 +322,15 @@ export default function Admin() {
           )}
         </>
       )}
+
+      <ConfirmDialog
+        isOpen={!!confirmWebhookId}
+        title="Delete Webhook"
+        message="This will permanently remove the webhook endpoint. This action cannot be undone."
+        confirmLabel="Delete Webhook"
+        onConfirm={deleteWebhook}
+        onCancel={() => setConfirmWebhookId(null)}
+      />
 
       {/* User Modal */}
       <Modal isOpen={userModalOpen} onClose={() => setUserModalOpen(false)} title={editingUser ? 'Edit User' : 'Add User'}>

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import api from '../api/client';
 import Layout from '../components/Layout';
 import Modal from '../components/Modal';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { formatDate } from '../utils/format';
 import toast from 'react-hot-toast';
 
@@ -27,6 +28,7 @@ export default function Batches() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [confirmId, setConfirmId] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -73,11 +75,11 @@ export default function Batches() {
     finally { setSaving(false); }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this batch?')) return;
+  const handleDelete = async () => {
     try {
-      await api.delete(`/batches/${id}`);
+      await api.delete(`/batches/${confirmId}`);
       toast.success('Batch deleted');
+      setConfirmId(null);
       load();
     } catch { toast.error('Delete failed'); }
   };
@@ -122,7 +124,7 @@ export default function Batches() {
                   <td className="table-td">
                     <div className="flex gap-2">
                       <button onClick={() => openEdit(b)} className="text-xs text-[#1a2e5a] hover:underline">Edit</button>
-                      <button onClick={() => handleDelete(b._id)} className="text-xs text-red-400 hover:underline">Delete</button>
+                      <button onClick={() => setConfirmId(b._id)} className="text-xs text-red-400 hover:underline">Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -131,6 +133,15 @@ export default function Batches() {
           </table>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={!!confirmId}
+        title="Delete Batch"
+        message="This will permanently delete the batch record. This action cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmId(null)}
+      />
 
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Edit Batch' : 'Add Batch'}>
         <form onSubmit={handleSave}>

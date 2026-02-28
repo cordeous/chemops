@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import api from '../api/client';
 import Layout from '../components/Layout';
 import Modal from '../components/Modal';
+import ConfirmDialog from '../components/ConfirmDialog';
 import StatusBadge from '../components/StatusBadge';
 import { formatCurrency } from '../utils/format';
 import toast from 'react-hot-toast';
@@ -22,6 +23,7 @@ export default function Customers() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [confirmId, setConfirmId] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -45,7 +47,10 @@ export default function Customers() {
       creditLimit: c.creditLimit ?? 10000, currency: c.currency || 'USD',
       complianceStatus: c.complianceStatus || 'Pending',
       contactName: c.contactName || '', contactEmail: c.contactEmail || '', contactPhone: c.contactPhone || '',
-      address: { street: c.address?.street || '', city: c.address?.city || '', state: c.address?.state || '', country: c.address?.country || '', postalCode: c.address?.postalCode || '' },
+      address: {
+        street: c.address?.street || '', city: c.address?.city || '',
+        state: c.address?.state || '', country: c.address?.country || '', postalCode: c.address?.postalCode || '',
+      },
     });
     setModalOpen(true);
   };
@@ -67,11 +72,11 @@ export default function Customers() {
     finally { setSaving(false); }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this customer?')) return;
+  const handleDelete = async () => {
     try {
-      await api.delete(`/customers/${id}`);
+      await api.delete(`/customers/${confirmId}`);
       toast.success('Customer deleted');
+      setConfirmId(null);
       load();
     } catch { toast.error('Delete failed'); }
   };
@@ -85,7 +90,7 @@ export default function Customers() {
       actions={<button onClick={openAdd} className="btn btn-accent">+ Add Customer</button>}
     >
       <div className="filter-bar">
-        <input className="input max-w-xs" placeholder="Search customers…" value={search} onChange={e => setSearch(e.target.value)} />
+        <input className="input max-w-xs" placeholder="Search customers..." value={search} onChange={e => setSearch(e.target.value)} />
         <select className="select max-w-[180px]" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
           <option value="">All statuses</option>
           <option value="Verified">Verified</option>
@@ -108,7 +113,7 @@ export default function Customers() {
               </tr>
             </thead>
             <tbody>
-              {loading && <tr><td colSpan={6} className="py-12 text-center text-gray-400">Loading…</td></tr>}
+              {loading && <tr><td colSpan={6} className="py-12 text-center text-gray-400">Loading...</td></tr>}
               {!loading && customers.length === 0 && <tr><td colSpan={6} className="py-12 text-center text-gray-400">No customers found</td></tr>}
               {customers.map(c => (
                 <tr key={c._id} className="table-row">
@@ -120,13 +125,13 @@ export default function Customers() {
                     <div>{c.contactName}</div>
                     <div className="text-xs text-gray-400">{c.contactEmail}</div>
                   </td>
-                  <td className="table-td font-mono text-xs text-gray-500">{c.taxId || '—'}</td>
+                  <td className="table-td font-mono text-xs text-gray-500">{c.taxId || '-'}</td>
                   <td className="table-td">{formatCurrency(c.creditLimit, c.currency)}</td>
                   <td className="table-td"><StatusBadge status={c.complianceStatus} /></td>
                   <td className="table-td">
                     <div className="flex gap-2">
                       <button onClick={() => openEdit(c)} className="text-xs text-[#1a2e5a] hover:underline">Edit</button>
-                      <button onClick={() => handleDelete(c._id)} className="text-xs text-red-400 hover:underline">Delete</button>
+                      <button onClick={() => setConfirmId(c._id)} className="text-xs text-red-400 hover:underline">Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -135,6 +140,15 @@ export default function Customers() {
           </table>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={!!confirmId}
+        title="Delete Customer"
+        message="This will permanently delete the customer and all associated records. This action cannot be undone."
+        confirmLabel="Delete Customer"
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmId(null)}
+      />
 
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Edit Customer' : 'Add Customer'} size="lg">
         <form onSubmit={handleSave}>
@@ -204,7 +218,7 @@ export default function Customers() {
           </div>
           <div className="modal-footer">
             <button type="button" onClick={() => setModalOpen(false)} className="btn btn-outline">Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Save Customer'}</button>
+            <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save Customer'}</button>
           </div>
         </form>
       </Modal>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -35,6 +35,9 @@ export default function Login() {
           </div>
           <h1 className="text-3xl font-bold text-white">ChemOps</h1>
           <p className="text-white/60 text-sm mt-1">Chemical Sales & Billing Platform</p>
+          <Link to="/" className="text-white/40 text-xs hover:text-white/70 transition-colors mt-2 inline-block">
+            &larr; Back to home
+          </Link>
         </div>
 
         {/* Card */}

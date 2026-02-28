@@ -2,6 +2,7 @@ import { Component } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
@@ -32,7 +33,7 @@ class ErrorBoundary extends Component {
 
 function PrivateRoute({ children, roles }) {
   const { user, token } = useAuth();
-  if (!token) return <Navigate to="/" replace />;
+  if (!token) return <Navigate to="/login" replace />;
   if (roles && user && !roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
   return children;
 }
@@ -41,7 +42,8 @@ function AppRoutes() {
   const { token } = useAuth();
   return (
     <Routes>
-      <Route path="/" element={token ? <Navigate to="/dashboard" replace /> : <Login />} />
+      <Route path="/" element={<Landing />} />
+      <Route path="/login" element={token ? <Navigate to="/dashboard" replace /> : <Login />} />
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/products" element={<PrivateRoute><Products /></PrivateRoute>} />
       <Route path="/batches" element={<PrivateRoute><Batches /></PrivateRoute>} />
