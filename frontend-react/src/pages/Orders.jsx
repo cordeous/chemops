@@ -3,6 +3,7 @@ import api from '../api/client';
 import Layout from '../components/Layout';
 import Modal from '../components/Modal';
 import StatusBadge from '../components/StatusBadge';
+import ErrorState from '../components/ErrorState';
 import { formatCurrency, formatDate, STATUS_TRANSITIONS } from '../utils/format';
 import toast from 'react-hot-toast';
 
@@ -22,9 +23,11 @@ export default function Orders() {
   const [detailOrder, setDetailOrder] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const params = filterStatus ? { status: filterStatus } : {};
       const [oRes, cRes, pRes] = await Promise.all([
@@ -35,7 +38,7 @@ export default function Orders() {
       setOrders(Array.isArray(oRes.data?.data) ? oRes.data.data : []);
       setCustomers(Array.isArray(cRes.data?.data) ? cRes.data.data : []);
       setProducts(Array.isArray(pRes.data?.data) ? pRes.data.data : []);
-    } catch { toast.error('Failed to load orders'); }
+    } catch (err) { setError(err.message || 'Failed to load orders'); }
     finally { setLoading(false); }
   }, [filterStatus]);
 
@@ -64,16 +67,32 @@ export default function Orders() {
     });
   };
 
-  const calcSubtotal = () => form.items.reduce((sum, it) => sum + (Number(it.quantity) * Number(it.unitPrice)), 0);
-  const calcTotal = () => { const s = calcSubtotal(); return s + (s * Number(form.taxRate) / 100); };
+  const calcSubtotal = () => form.items.reduce((sum, it) => {
+    const qty = Number(it.quantity) || 0;
+    const price = Number(it.unitPrice) || 0;
+    return sum + qty * price;
+  }, 0);
+  const calcTotal = () => { const s = calcSubtotal(); const tax = Number(form.taxRate) || 0; return s + (s * tax / 100); };
 
   const openAdd = () => { setForm(EMPTY_FORM); setModalOpen(true); };
 
   const handleSave = async (e) => {
     e.preventDefault();
+    const validItems = form.items.filter(it => it.productId && Number(it.quantity) > 0);
+    if (validItems.length === 0) {
+      toast.error('Add at least one line item with a product and quantity > 0.');
+      return;
+    }
     setSaving(true);
     try {
-      const payload = { ...form, items: form.items.map(it => ({ ...it, quantity: Number(it.quantity), unitPrice: Number(it.unitPrice) })) };
+      const payload = {
+        ...form,
+        items: validItems.map(it => ({
+          ...it,
+          quantity: Math.max(1, Number(it.quantity) || 1),
+          unitPrice: Math.max(0, Number(it.unitPrice) || 0),
+        })),
+      };
       await api.post('/orders', payload);
       toast.success('Order created');
       setModalOpen(false);
@@ -98,6 +117,8 @@ export default function Orders() {
       title="Orders"
       actions={<button onClick={openAdd} className="btn btn-accent">+ New Order</button>}
     >
+      {error && <ErrorState message={error} onRetry={load} />}
+
       <div className="filter-bar">
         <select className="select max-w-[180px]" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
           <option value="">All statuses</option>
@@ -110,31 +131,31 @@ export default function Orders() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="table-th">Customer</th>
-                <th className="table-th">Items</th>
-                <th className="table-th">Total</th>
-                <th className="table-th">Status</th>
-                <th className="table-th">Date</th>
-                <th className="table-th"></th>
+                <th scope="col" className="table-th">Customer</th>
+                <th scope="col" className="table-th">Items</th>
+                <th scope="col" className="table-th">Total</th>
+                <th scope="col" className="table-th">Status</th>
+                <th scope="col" className="table-th">Date</th>
+                <th scope="col" className="table-th"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
-            <tbody>
-              {loading && <tr><td colSpan={6} className="py-12 text-center text-gray-400">Loading…</td></tr>}
+            <tbody aria-live="polite" aria-busy={loading}>
+              {loading && <tr><td colSpan={6} className="py-12 text-center text-gray-400" aria-label="Loading orders">Loading…</td></tr>}
               {!loading && orders.length === 0 && <tr><td colSpan={6} className="py-12 text-center text-gray-400">No orders found</td></tr>}
               {orders.map(o => {
                 const transitions = STATUS_TRANSITIONS[o.status] ?? [];
                 return (
                   <tr key={o._id} className="table-row">
-                    <td className="table-td font-medium">{o.customerId?.companyName ?? '—'}</td>
+                    <td className="table-td font-medium max-w-[160px] truncate" title={o.customerId?.companyName}>{o.customerId?.companyName ?? '—'}</td>
                     <td className="table-td text-gray-500">{o.items?.length ?? 0} item{o.items?.length !== 1 ? 's' : ''}</td>
                     <td className="table-td font-semibold">{formatCurrency(o.totalAmount, o.currency)}</td>
                     <td className="table-td"><StatusBadge status={o.status} /></td>
                     <td className="table-td text-gray-500">{formatDate(o.createdAt)}</td>
                     <td className="table-td">
-                      <div className="flex gap-2 flex-wrap">
-                        <button onClick={() => setDetailOrder(o)} className="text-xs text-[#1a2e5a] hover:underline">View</button>
+                      <div className="flex gap-1 flex-wrap">
+                        <button onClick={() => setDetailOrder(o)} className="btn btn-ghost btn-xs min-h-[36px]" aria-label={`View order details for ${o.customerId?.companyName ?? 'order'}`}>View</button>
                         {transitions.map(t => (
-                          <button key={t} onClick={() => updateStatus(o._id, t)} className="text-xs text-[#f07c1e] hover:underline">{t}</button>
+                          <button key={t} onClick={() => updateStatus(o._id, t)} className="btn btn-ghost btn-xs min-h-[36px] text-[#f07c1e] hover:bg-orange-50" aria-label={`Advance order to ${t}`}>{t}</button>
                         ))}
                       </div>
                     </td>
@@ -162,10 +183,10 @@ export default function Orders() {
               <table className="w-full text-sm border border-gray-100 rounded-lg overflow-hidden">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="table-th">Product</th>
-                    <th className="table-th">Qty</th>
-                    <th className="table-th">Unit Price</th>
-                    <th className="table-th">Total</th>
+                    <th scope="col" className="table-th">Product</th>
+                    <th scope="col" className="table-th">Qty</th>
+                    <th scope="col" className="table-th">Unit Price</th>
+                    <th scope="col" className="table-th">Total</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -270,7 +291,7 @@ export default function Orders() {
 
             <div>
               <label className="label">Notes</label>
-              <textarea className="input" rows={2} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
+              <textarea className="input" rows={2} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} maxLength={1000} />
             </div>
           </div>
           <div className="modal-footer">

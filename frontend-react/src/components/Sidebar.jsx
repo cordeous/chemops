@@ -17,9 +17,9 @@ const NAV = [
   { to: '/admin', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z', label: 'Admin Panel', role: 'Admin' },
 ];
 
-function Icon({ path }) {
+function Icon({ path, label }) {
   return (
-    <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
       {path.split(' M').map((d, i) => (
         <path key={i} strokeLinecap="round" strokeLinejoin="round" d={i === 0 ? d : 'M' + d} />
       ))}
@@ -29,70 +29,106 @@ function Icon({ path }) {
 
 const ROLE_COLOR = { Admin: '#f07c1e', Sales: '#3b82f6', Finance: '#10b981', Compliance: '#8b5cf6' };
 
-export default function Sidebar() {
+export default function Sidebar({ open, onClose }) {
   const { user, logout } = useAuth();
   const roleColor = ROLE_COLOR[user?.role] || '#f07c1e';
 
   return (
-    <aside className="w-[260px] bg-[#0f1d3a] flex flex-col fixed top-0 left-0 bottom-0 z-40 shadow-xl">
-      {/* Brand */}
-      <div className="px-5 pt-6 pb-5 border-b border-white/8">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base" style={{ background: '#f07c1e' }}>⚗️</div>
-          <div>
-            <div className="text-sm font-bold text-white tracking-wide">Chem<span style={{ color: '#f07c1e' }}>Ops</span></div>
-            <div className="text-[10px] text-white/35 leading-tight">Sales & Billing Platform</div>
-          </div>
-        </div>
-      </div>
+    <>
+      {/* Mobile overlay */}
+      {open && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
-        {NAV.map((item, i) => {
-          if (item.section) {
+      <aside
+        className={`w-[260px] bg-[#0f1d3a] flex flex-col fixed top-0 left-0 bottom-0 z-40 shadow-xl transition-transform duration-200
+          ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+        aria-label="Main navigation"
+      >
+        {/* Brand */}
+        <div className="px-5 pt-6 pb-5 border-b border-white/8 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base" style={{ background: '#f07c1e' }} aria-hidden="true">⚗️</div>
+            <div>
+              <div className="text-sm font-bold text-white tracking-wide">Chem<span style={{ color: '#f07c1e' }}>Ops</span></div>
+              <div className="text-[10px] text-white/35 leading-tight">Sales & Billing Platform</div>
+            </div>
+          </div>
+          {/* Mobile close button */}
+          <button
+            onClick={onClose}
+            className="md:hidden w-8 h-8 flex items-center justify-center rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+            aria-label="Close navigation"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5" aria-label="Site sections">
+          {NAV.map((item, i) => {
+            if (item.section) {
+              if (item.role && user?.role !== item.role) return null;
+              return (
+                <div key={i} className="px-2 pt-5 pb-1.5 text-[9px] font-bold uppercase tracking-[0.15em] text-white/25 first:pt-1">
+                  {item.section}
+                </div>
+              );
+            }
             if (item.role && user?.role !== item.role) return null;
             return (
-              <div key={i} className="px-2 pt-5 pb-1.5 text-[9px] font-bold uppercase tracking-[0.15em] text-white/25 first:pt-1">
-                {item.section}
-              </div>
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={onClose}
+                className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+                aria-current={undefined}
+              >
+                {({ isActive }) => (
+                  <>
+                    <Icon path={item.icon} label={item.label} />
+                    <span className="text-sm">{item.label}</span>
+                    {isActive && <span className="sr-only">(current page)</span>}
+                  </>
+                )}
+              </NavLink>
             );
-          }
-          if (item.role && user?.role !== item.role) return null;
-          return (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-            >
-              <Icon path={item.icon} />
-              <span className="text-sm">{item.label}</span>
-            </NavLink>
-          );
-        })}
-      </nav>
+          })}
+        </nav>
 
-      {/* User footer */}
-      <div className="px-4 py-4 border-t border-white/8">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-            style={{ background: roleColor }}>
-            {user?.name?.charAt(0) ?? '?'}
+        {/* User footer */}
+        <div className="px-4 py-4 border-t border-white/8">
+          <div className="flex items-center gap-3 mb-3">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+              style={{ background: roleColor }}
+              aria-hidden="true"
+            >
+              {user?.name?.charAt(0) ?? '?'}
+            </div>
+            <div className="min-w-0">
+              <div className="text-white/90 text-sm font-medium truncate">{user?.name}</div>
+              <div className="text-white/35 text-xs">{user?.role}</div>
+            </div>
           </div>
-          <div className="min-w-0">
-            <div className="text-white/90 text-sm font-medium truncate">{user?.name}</div>
-            <div className="text-white/35 text-xs">{user?.role}</div>
-          </div>
+          <button
+            onClick={logout}
+            aria-label="Sign out"
+            className="w-full text-left text-xs text-white/35 hover:text-red-400 transition-colors flex items-center gap-1.5 min-h-[36px]"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Sign out
+          </button>
         </div>
-        <button
-          onClick={logout}
-          className="w-full text-left text-xs text-white/35 hover:text-red-400 transition-colors flex items-center gap-1.5"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          Sign out
-        </button>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }

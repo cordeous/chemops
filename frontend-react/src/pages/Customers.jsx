@@ -4,6 +4,7 @@ import Layout from '../components/Layout';
 import Modal from '../components/Modal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import StatusBadge from '../components/StatusBadge';
+import ErrorState from '../components/ErrorState';
 import { formatCurrency } from '../utils/format';
 import toast from 'react-hot-toast';
 
@@ -24,16 +25,18 @@ export default function Customers() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [confirmId, setConfirmId] = useState(null);
+  const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const params = {};
       if (search) params.search = search;
       if (filterStatus) params.complianceStatus = filterStatus;
       const res = await api.get('/customers', { params });
       setCustomers(Array.isArray(res.data?.data) ? res.data.data : []);
-    } catch { toast.error('Failed to load customers'); }
+    } catch (err) { setError(err.message || 'Failed to load customers'); }
     finally { setLoading(false); }
   }, [search, filterStatus]);
 
@@ -89,6 +92,8 @@ export default function Customers() {
       title="Customers"
       actions={<button onClick={openAdd} className="btn btn-accent">+ Add Customer</button>}
     >
+      {error && <ErrorState message={error} onRetry={load} />}
+
       <div className="filter-bar">
         <input className="input max-w-xs" placeholder="Search customers..." value={search} onChange={e => setSearch(e.target.value)} />
         <select className="select max-w-[180px]" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
@@ -104,34 +109,42 @@ export default function Customers() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="table-th">Company</th>
-                <th className="table-th">Contact</th>
-                <th className="table-th">Tax ID</th>
-                <th className="table-th">Credit Limit</th>
-                <th className="table-th">Compliance</th>
-                <th className="table-th"></th>
+                <th scope="col" className="table-th">Company</th>
+                <th scope="col" className="table-th">Contact</th>
+                <th scope="col" className="table-th">Tax ID</th>
+                <th scope="col" className="table-th">Credit Limit</th>
+                <th scope="col" className="table-th">Compliance</th>
+                <th scope="col" className="table-th"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
-            <tbody>
-              {loading && <tr><td colSpan={6} className="py-12 text-center text-gray-400">Loading...</td></tr>}
-              {!loading && customers.length === 0 && <tr><td colSpan={6} className="py-12 text-center text-gray-400">No customers found</td></tr>}
+            <tbody aria-live="polite" aria-busy={loading}>
+              {loading && <tr><td colSpan={6} className="py-12 text-center text-gray-400" aria-label="Loading customers">Loading…</td></tr>}
+              {!loading && customers.length === 0 && (
+                <tr><td colSpan={6} className="py-12 text-center text-gray-400">
+                  <div className="flex flex-col items-center gap-2">
+                    <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" /></svg>
+                    <span className="text-sm">No customers found</span>
+                    <button onClick={openAdd} className="btn btn-accent btn-sm mt-1">Add your first customer</button>
+                  </div>
+                </td></tr>
+              )}
               {customers.map(c => (
                 <tr key={c._id} className="table-row">
-                  <td className="table-td">
-                    <div className="font-medium text-gray-900">{c.companyName}</div>
-                    <div className="text-xs text-gray-400">{c.address?.city}{c.address?.country ? `, ${c.address.country}` : ''}</div>
+                  <td className="table-td max-w-[180px]">
+                    <div className="font-medium text-gray-900 truncate" title={c.companyName}>{c.companyName || '—'}</div>
+                    <div className="text-xs text-gray-400 truncate">{c.address?.city}{c.address?.country ? `, ${c.address.country}` : ''}</div>
                   </td>
-                  <td className="table-td">
-                    <div>{c.contactName}</div>
-                    <div className="text-xs text-gray-400">{c.contactEmail}</div>
+                  <td className="table-td max-w-[160px]">
+                    <div className="truncate" title={c.contactName}>{c.contactName || '—'}</div>
+                    <div className="text-xs text-gray-400 truncate" title={c.contactEmail}>{c.contactEmail || '—'}</div>
                   </td>
-                  <td className="table-td font-mono text-xs text-gray-500">{c.taxId || '-'}</td>
+                  <td className="table-td font-mono text-xs text-gray-500">{c.taxId || '—'}</td>
                   <td className="table-td">{formatCurrency(c.creditLimit, c.currency)}</td>
                   <td className="table-td"><StatusBadge status={c.complianceStatus} /></td>
                   <td className="table-td">
-                    <div className="flex gap-2">
-                      <button onClick={() => openEdit(c)} className="text-xs text-[#1a2e5a] hover:underline">Edit</button>
-                      <button onClick={() => setConfirmId(c._id)} className="text-xs text-red-400 hover:underline">Delete</button>
+                    <div className="flex gap-1">
+                      <button onClick={() => openEdit(c)} className="btn btn-ghost btn-xs min-h-[36px]" aria-label={`Edit ${c.companyName}`}>Edit</button>
+                      <button onClick={() => setConfirmId(c._id)} className="btn btn-ghost btn-xs min-h-[36px] text-red-400 hover:text-red-600 hover:bg-red-50" aria-label={`Delete ${c.companyName}`}>Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -155,11 +168,11 @@ export default function Customers() {
           <div className="modal-body grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
               <label className="label">Company Name *</label>
-              <input className="input" value={form.companyName} onChange={f('companyName')} required />
+              <input className="input" value={form.companyName} onChange={f('companyName')} required maxLength={200} />
             </div>
             <div>
               <label className="label">Tax ID</label>
-              <input className="input" value={form.taxId} onChange={f('taxId')} />
+              <input className="input" value={form.taxId} onChange={f('taxId')} maxLength={50} />
             </div>
             <div>
               <label className="label">Compliance Status</label>
@@ -182,15 +195,15 @@ export default function Customers() {
             </div>
             <div>
               <label className="label">Contact Name</label>
-              <input className="input" value={form.contactName} onChange={f('contactName')} />
+              <input className="input" value={form.contactName} onChange={f('contactName')} maxLength={100} />
             </div>
             <div>
               <label className="label">Email</label>
-              <input className="input" type="email" value={form.contactEmail} onChange={f('contactEmail')} />
+              <input className="input" type="email" value={form.contactEmail} onChange={f('contactEmail')} maxLength={254} />
             </div>
             <div>
               <label className="label">Phone</label>
-              <input className="input" type="tel" value={form.contactPhone} onChange={f('contactPhone')} />
+              <input className="input" type="tel" value={form.contactPhone} onChange={f('contactPhone')} maxLength={30} />
             </div>
             <div className="sm:col-span-2 border-t border-gray-100 pt-2 mt-1">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Address</p>

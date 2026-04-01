@@ -156,7 +156,7 @@ export default function Admin() {
         ))}
       </div>
 
-      {loading ? <div className="flex items-center justify-center h-64 text-gray-400">Loading…</div> : (
+      {loading ? <div className="flex items-center justify-center h-64 text-gray-400" aria-live="polite" aria-label="Loading admin data">Loading…</div> : (
         <>
           {/* Users */}
           {tab === 'users' && (
@@ -168,11 +168,11 @@ export default function Admin() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b border-gray-100">
-                    <th className="table-th">Name</th>
-                    <th className="table-th">Email</th>
-                    <th className="table-th">Role</th>
-                    <th className="table-th">Status</th>
-                    <th className="table-th"></th>
+                    <th scope="col" className="table-th">Name</th>
+                    <th scope="col" className="table-th">Email</th>
+                    <th scope="col" className="table-th">Role</th>
+                    <th scope="col" className="table-th">Status</th>
+                    <th scope="col" className="table-th"><span className="sr-only">Actions</span></th>
                   </tr></thead>
                   <tbody>
                     {users.map(u => (
@@ -182,9 +182,9 @@ export default function Admin() {
                         <td className="table-td"><span className="badge badge-blue">{u.role}</span></td>
                         <td className="table-td"><span className={`badge ${u.isActive ? 'badge-green' : 'badge-gray'}`}>{u.isActive ? 'Active' : 'Inactive'}</span></td>
                         <td className="table-td">
-                          <div className="flex gap-2">
-                            <button onClick={() => openEditUser(u)} className="text-xs text-[#1a2e5a] hover:underline">Edit</button>
-                            <button onClick={() => toggleUserActive(u)} className="text-xs text-gray-400 hover:underline">{u.isActive ? 'Deactivate' : 'Activate'}</button>
+                          <div className="flex gap-1">
+                            <button onClick={() => openEditUser(u)} className="btn btn-ghost btn-xs min-h-[36px]" aria-label={`Edit user ${u.name}`}>Edit</button>
+                            <button onClick={() => toggleUserActive(u)} className="btn btn-ghost btn-xs min-h-[36px] text-gray-400" aria-label={`${u.isActive ? 'Deactivate' : 'Activate'} user ${u.name}`}>{u.isActive ? 'Deactivate' : 'Activate'}</button>
                           </div>
                         </td>
                       </tr>
@@ -208,10 +208,13 @@ export default function Admin() {
                       <div className="text-xs text-gray-400">Feature toggle</div>
                     </div>
                     <button
+                      role="switch"
+                      aria-checked={val}
+                      aria-label={`Toggle feature: ${key}`}
                       onClick={() => toggleFeature(key)}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${val ? 'bg-[#f07c1e]' : 'bg-gray-200'}`}
                     >
-                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${val ? 'translate-x-6' : 'translate-x-1'}`} />
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${val ? 'translate-x-6' : 'translate-x-1'}`} aria-hidden="true" />
                     </button>
                   </div>
                 ))}
@@ -229,11 +232,11 @@ export default function Admin() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b border-gray-100">
-                    <th className="table-th">URL</th>
-                    <th className="table-th">Events</th>
-                    <th className="table-th">Status</th>
-                    <th className="table-th">Last Triggered</th>
-                    <th className="table-th"></th>
+                    <th scope="col" className="table-th">URL</th>
+                    <th scope="col" className="table-th">Events</th>
+                    <th scope="col" className="table-th">Status</th>
+                    <th scope="col" className="table-th">Last Triggered</th>
+                    <th scope="col" className="table-th"><span className="sr-only">Actions</span></th>
                   </tr></thead>
                   <tbody>
                     {webhooks.length === 0 && <tr><td colSpan={5} className="py-12 text-center text-gray-400">No webhooks configured</td></tr>}
@@ -248,10 +251,10 @@ export default function Admin() {
                         <td className="table-td"><span className={`badge ${w.isActive ? 'badge-green' : 'badge-gray'}`}>{w.isActive ? 'Active' : 'Inactive'}</span></td>
                         <td className="table-td text-gray-500">{w.lastTriggeredAt ? formatDate(w.lastTriggeredAt) : 'Never'}</td>
                         <td className="table-td">
-                          <div className="flex gap-2">
-                            <button onClick={() => openEditWebhook(w)} className="text-xs text-[#1a2e5a] hover:underline">Edit</button>
-                            <button onClick={() => testWebhook(w._id)} className="text-xs text-[#f07c1e] hover:underline">Test</button>
-                            <button onClick={() => setConfirmWebhookId(w._id)} className="text-xs text-red-400 hover:underline">Delete</button>
+                          <div className="flex gap-1">
+                            <button onClick={() => openEditWebhook(w)} className="btn btn-ghost btn-xs min-h-[36px]" aria-label="Edit webhook">Edit</button>
+                            <button onClick={() => testWebhook(w._id)} className="btn btn-ghost btn-xs min-h-[36px] text-[#f07c1e] hover:bg-orange-50" aria-label="Test webhook">Test</button>
+                            <button onClick={() => setConfirmWebhookId(w._id)} className="btn btn-ghost btn-xs min-h-[36px] text-red-400 hover:bg-red-50" aria-label="Delete webhook">Delete</button>
                           </div>
                         </td>
                       </tr>
@@ -272,10 +275,10 @@ export default function Admin() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead><tr className="border-b border-gray-100">
-                      <th className="table-th">Product</th>
-                      <th className="table-th">Current Stock</th>
-                      <th className="table-th">Threshold</th>
-                      <th className="table-th">Unit</th>
+                      <th scope="col" className="table-th">Product</th>
+                      <th scope="col" className="table-th">Current Stock</th>
+                      <th scope="col" className="table-th">Threshold</th>
+                      <th scope="col" className="table-th">Unit</th>
                     </tr></thead>
                     <tbody>
                       {alerts.map(p => (
@@ -300,10 +303,10 @@ export default function Admin() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b border-gray-100">
-                    <th className="table-th">Action</th>
-                    <th className="table-th">Entity</th>
-                    <th className="table-th">User</th>
-                    <th className="table-th">Date</th>
+                    <th scope="col" className="table-th">Action</th>
+                    <th scope="col" className="table-th">Entity</th>
+                    <th scope="col" className="table-th">User</th>
+                    <th scope="col" className="table-th">Date</th>
                   </tr></thead>
                   <tbody>
                     {auditLogs.length === 0 && <tr><td colSpan={4} className="py-12 text-center text-gray-400">No audit logs yet</td></tr>}
@@ -336,11 +339,21 @@ export default function Admin() {
       <Modal isOpen={userModalOpen} onClose={() => setUserModalOpen(false)} title={editingUser ? 'Edit User' : 'Add User'}>
         <form onSubmit={saveUser}>
           <div className="modal-body space-y-4">
-            <div><label className="label">Name *</label><input className="input" value={userForm.name} onChange={e => setUserForm(f => ({...f, name: e.target.value}))} required /></div>
-            <div><label className="label">Email *</label><input className="input" type="email" value={userForm.email} onChange={e => setUserForm(f => ({...f, email: e.target.value}))} required /></div>
-            <div><label className="label">{editingUser ? 'New Password (leave blank to keep)' : 'Password *'}</label><input className="input" type="password" value={userForm.password} onChange={e => setUserForm(f => ({...f, password: e.target.value}))} required={!editingUser} /></div>
-            <div><label className="label">Role</label>
-              <select className="select" value={userForm.role} onChange={e => setUserForm(f => ({...f, role: e.target.value}))}>
+            <div>
+              <label htmlFor="user-name" className="label">Name *</label>
+              <input id="user-name" className="input" value={userForm.name} onChange={e => setUserForm(f => ({...f, name: e.target.value}))} required maxLength={100} autoComplete="name" />
+            </div>
+            <div>
+              <label htmlFor="user-email" className="label">Email *</label>
+              <input id="user-email" className="input" type="email" value={userForm.email} onChange={e => setUserForm(f => ({...f, email: e.target.value}))} required maxLength={254} autoComplete="email" />
+            </div>
+            <div>
+              <label htmlFor="user-password" className="label">{editingUser ? 'New Password (leave blank to keep)' : 'Password *'}</label>
+              <input id="user-password" className="input" type="password" value={userForm.password} onChange={e => setUserForm(f => ({...f, password: e.target.value}))} required={!editingUser} maxLength={128} autoComplete={editingUser ? 'new-password' : 'new-password'} />
+            </div>
+            <div>
+              <label htmlFor="user-role" className="label">Role</label>
+              <select id="user-role" className="select" value={userForm.role} onChange={e => setUserForm(f => ({...f, role: e.target.value}))}>
                 {ROLES.map(r => <option key={r}>{r}</option>)}
               </select>
             </div>
@@ -356,8 +369,14 @@ export default function Admin() {
       <Modal isOpen={webhookModalOpen} onClose={() => setWebhookModalOpen(false)} title={editingWebhook ? 'Edit Webhook' : 'Add Webhook'}>
         <form onSubmit={saveWebhook}>
           <div className="modal-body space-y-4">
-            <div><label className="label">Endpoint URL *</label><input className="input" type="url" placeholder="https://example.com/webhook" value={webhookForm.url} onChange={e => setWebhookForm(f => ({...f, url: e.target.value}))} required /></div>
-            <div><label className="label">Secret (for HMAC signature)</label><input className="input" value={webhookForm.secret} onChange={e => setWebhookForm(f => ({...f, secret: e.target.value}))} /></div>
+            <div>
+              <label htmlFor="webhook-url" className="label">Endpoint URL *</label>
+              <input id="webhook-url" className="input" type="url" placeholder="https://example.com/webhook" value={webhookForm.url} onChange={e => setWebhookForm(f => ({...f, url: e.target.value}))} required maxLength={2000} />
+            </div>
+            <div>
+              <label htmlFor="webhook-secret" className="label">Secret (for HMAC signature)</label>
+              <input id="webhook-secret" className="input" value={webhookForm.secret} onChange={e => setWebhookForm(f => ({...f, secret: e.target.value}))} maxLength={256} />
+            </div>
             <div>
               <label className="label">Events *</label>
               <div className="grid grid-cols-1 gap-2 mt-1">

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import api from '../api/client';
 import Layout from '../components/Layout';
 import StatusBadge from '../components/StatusBadge';
+import ErrorState from '../components/ErrorState';
 import { formatCurrency, formatDate } from '../utils/format';
 import toast from 'react-hot-toast';
 
@@ -12,14 +13,16 @@ export default function Invoices() {
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('');
   const [downloading, setDownloading] = useState(null);
+  const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const params = filterStatus ? { status: filterStatus } : {};
       const res = await api.get('/invoices', { params });
       setInvoices(Array.isArray(res.data?.data) ? res.data.data : []);
-    } catch { toast.error('Failed to load invoices'); }
+    } catch (err) { setError(err.message || 'Failed to load invoices'); }
     finally { setLoading(false); }
   }, [filterStatus]);
 
@@ -49,6 +52,8 @@ export default function Invoices() {
 
   return (
     <Layout title="Invoices">
+      {error && <ErrorState message={error} onRetry={load} />}
+
       <div className="filter-bar">
         <select className="select max-w-[180px]" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
           <option value="">All statuses</option>
@@ -61,18 +66,18 @@ export default function Invoices() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="table-th">Invoice #</th>
-                <th className="table-th">Order</th>
-                <th className="table-th">Subtotal</th>
-                <th className="table-th">Tax</th>
-                <th className="table-th">Total</th>
-                <th className="table-th">Due Date</th>
-                <th className="table-th">Status</th>
-                <th className="table-th"></th>
+                <th scope="col" className="table-th">Invoice #</th>
+                <th scope="col" className="table-th">Order</th>
+                <th scope="col" className="table-th">Subtotal</th>
+                <th scope="col" className="table-th">Tax</th>
+                <th scope="col" className="table-th">Total</th>
+                <th scope="col" className="table-th">Due Date</th>
+                <th scope="col" className="table-th">Status</th>
+                <th scope="col" className="table-th"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
-            <tbody>
-              {loading && <tr><td colSpan={8} className="py-12 text-center text-gray-400">Loading…</td></tr>}
+            <tbody aria-live="polite" aria-busy={loading}>
+              {loading && <tr><td colSpan={8} className="py-12 text-center text-gray-400" aria-label="Loading invoices">Loading…</td></tr>}
               {!loading && invoices.length === 0 && <tr><td colSpan={8} className="py-12 text-center text-gray-400">No invoices found</td></tr>}
               {invoices.map(inv => {
                 const isOverdue = inv.status !== 'Paid' && inv.dueDate && new Date(inv.dueDate) < new Date();
@@ -90,17 +95,18 @@ export default function Invoices() {
                     </td>
                     <td className="table-td"><StatusBadge status={isOverdue && inv.status !== 'Paid' ? 'Overdue' : inv.status} /></td>
                     <td className="table-td">
-                      <div className="flex gap-2 flex-wrap">
+                      <div className="flex gap-1 flex-wrap">
                         {inv.status === 'Draft' && (
-                          <button onClick={() => updateStatus(inv._id, 'Issued')} className="text-xs text-[#1a2e5a] hover:underline">Issue</button>
+                          <button onClick={() => updateStatus(inv._id, 'Issued')} className="btn btn-ghost btn-xs min-h-[36px]" aria-label={`Issue invoice ${inv.invoiceNumber}`}>Issue</button>
                         )}
                         {(inv.status === 'Issued' || inv.status === 'Overdue') && (
-                          <button onClick={() => updateStatus(inv._id, 'Paid')} className="text-xs text-emerald-600 hover:underline">Mark Paid</button>
+                          <button onClick={() => updateStatus(inv._id, 'Paid')} className="btn btn-ghost btn-xs min-h-[36px] text-emerald-600 hover:bg-emerald-50" aria-label={`Mark invoice ${inv.invoiceNumber} as paid`}>Mark Paid</button>
                         )}
                         <button
                           onClick={() => downloadPdf(inv)}
                           disabled={downloading === inv._id}
-                          className="text-xs text-[#f07c1e] hover:underline disabled:opacity-50"
+                          aria-label={`Download PDF for invoice ${inv.invoiceNumber}`}
+                          className="btn btn-ghost btn-xs min-h-[36px] text-[#f07c1e] hover:bg-orange-50 disabled:opacity-50"
                         >
                           {downloading === inv._id ? '…' : 'PDF'}
                         </button>

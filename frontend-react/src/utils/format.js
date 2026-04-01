@@ -1,8 +1,25 @@
-export const formatCurrency = (amount, currency = 'USD') =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount || 0);
+const VALID_CURRENCIES = new Set(['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CHF', 'CNY', 'INR']);
 
-export const formatDate = (dateStr) =>
-  dateStr ? new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+export const formatCurrency = (amount, currency = 'USD') => {
+  const safeAmount = typeof amount === 'number' && isFinite(amount) ? amount : 0;
+  const safeCurrency = VALID_CURRENCIES.has(currency) ? currency : 'USD';
+  try {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: safeCurrency }).format(safeAmount);
+  } catch {
+    return `${safeCurrency} ${safeAmount.toFixed(2)}`;
+  }
+};
+
+export const formatDate = (dateStr) => {
+  if (!dateStr) return '—';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  } catch {
+    return '—';
+  }
+};
 
 export const statusBadgeClass = (status) => {
   const map = {
@@ -23,4 +40,10 @@ export const STATUS_TRANSITIONS = {
   Shipped: ['Invoiced'],
   Invoiced: ['Paid'],
   Paid: [], Cancelled: [],
+};
+
+/** Clamp a string to maxLen, appending ellipsis if truncated */
+export const truncate = (str, maxLen = 50) => {
+  if (!str || typeof str !== 'string') return '';
+  return str.length > maxLen ? str.slice(0, maxLen) + '…' : str;
 };

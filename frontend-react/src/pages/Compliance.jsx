@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '../api/client';
 import Layout from '../components/Layout';
 import StatusBadge from '../components/StatusBadge';
+import ErrorState from '../components/ErrorState';
 import toast from 'react-hot-toast';
 
 export default function Compliance() {
@@ -10,22 +11,23 @@ export default function Compliance() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('sds');
   const [updatingId, setUpdatingId] = useState(null);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const [sdsRes, custRes] = await Promise.all([
-          api.get('/compliance/sds-tracker'),
-          api.get('/customers'),
-        ]);
-        setSds(Array.isArray(sdsRes.data?.data?.products) ? sdsRes.data.data.products : Array.isArray(sdsRes.data?.data) ? sdsRes.data.data : []);
-        setCustomers(Array.isArray(custRes.data?.data) ? custRes.data.data : []);
-      } catch { toast.error('Failed to load compliance data'); }
-      finally { setLoading(false); }
-    };
-    load();
-  }, []);
+  const load = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [sdsRes, custRes] = await Promise.all([
+        api.get('/compliance/sds-tracker'),
+        api.get('/customers'),
+      ]);
+      setSds(Array.isArray(sdsRes.data?.data?.products) ? sdsRes.data.data.products : Array.isArray(sdsRes.data?.data) ? sdsRes.data.data : []);
+      setCustomers(Array.isArray(custRes.data?.data) ? custRes.data.data : []);
+    } catch (err) { setError(err.message || 'Failed to load compliance data'); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { load(); }, []);
 
   const updateComplianceStatus = async (customerId, status) => {
     setUpdatingId(customerId);
@@ -54,6 +56,8 @@ export default function Compliance() {
       title="Compliance"
       actions={<button onClick={handleRegulatoryExport} className="btn btn-outline">Regulatory Export</button>}
     >
+      {error && <ErrorState message={error} onRetry={load} />}
+
       {/* Summary stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="card p-4 text-center">
@@ -71,10 +75,12 @@ export default function Compliance() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 max-w-sm">
+      <div role="tablist" aria-label="Compliance views" className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 max-w-sm">
         {[{id:'sds', label:'SDS Tracker'},{id:'customers', label:'Customer Compliance'}].map(t => (
           <button
             key={t.id}
+            role="tab"
+            aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
             className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${tab === t.id ? 'bg-white text-[#1a2e5a] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
           >
@@ -84,7 +90,7 @@ export default function Compliance() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64 text-gray-400">Loading…</div>
+        <div className="flex items-center justify-center h-64 text-gray-400" aria-live="polite" aria-label="Loading compliance data">Loading…</div>
       ) : tab === 'sds' ? (
         <div className="card overflow-hidden">
           <div className="card-header flex items-center justify-between">
@@ -95,33 +101,35 @@ export default function Compliance() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="table-th">Product</th>
-                  <th className="table-th">CAS Number</th>
-                  <th className="table-th">Hazardous</th>
-                  <th className="table-th">Hazard Class</th>
-                  <th className="table-th">SDS Status</th>
-                  <th className="table-th">Document</th>
+                  <th scope="col" className="table-th">Product</th>
+                  <th scope="col" className="table-th">CAS Number</th>
+                  <th scope="col" className="table-th">Hazardous</th>
+                  <th scope="col" className="table-th">Hazard Class</th>
+                  <th scope="col" className="table-th">SDS Status</th>
+                  <th scope="col" className="table-th">Document</th>
                 </tr>
               </thead>
               <tbody>
                 {sds.length === 0 && <tr><td colSpan={6} className="py-12 text-center text-gray-400">No products</td></tr>}
                 {sds.map(p => (
                   <tr key={p._id} className="table-row">
-                    <td className="table-td font-medium">{p.name}</td>
+                    <td className="table-td font-medium max-w-[180px] truncate" title={p.name}>{p.name || '—'}</td>
                     <td className="table-td font-mono text-xs text-gray-500">{p.CASNumber || '—'}</td>
                     <td className="table-td">
-                      {p.isHazardous ? <span className="badge badge-red">⚠ Yes</span> : <span className="badge badge-green">No</span>}
+                      {p.isHazardous
+                        ? <span className="badge badge-red" aria-label="Hazardous: Yes">⚠ Yes</span>
+                        : <span className="badge badge-green" aria-label="Hazardous: No">No</span>}
                     </td>
                     <td className="table-td text-gray-600">{p.hazardClassification || '—'}</td>
                     <td className="table-td">
                       {p.sdsDocumentUrl
-                        ? <span className="badge badge-green">✓ Complete</span>
-                        : <span className="badge badge-red">Missing</span>}
+                        ? <span className="badge badge-green" aria-label="SDS Status: Complete">✓ Complete</span>
+                        : <span className="badge badge-red" aria-label="SDS Status: Missing">Missing</span>}
                     </td>
                     <td className="table-td">
                       {p.sdsDocumentUrl
-                        ? <a href={p.sdsDocumentUrl} target="_blank" rel="noreferrer" className="text-[#f07c1e] hover:underline text-xs">View SDS →</a>
-                        : <span className="text-gray-300 text-xs">—</span>}
+                        ? <a href={p.sdsDocumentUrl} target="_blank" rel="noreferrer" className="text-[#f07c1e] hover:underline text-xs" aria-label={`View SDS document for ${p.name}`}>View SDS →</a>
+                        : <span className="text-gray-300 text-xs" aria-label="No SDS document">—</span>}
                     </td>
                   </tr>
                 ))}
@@ -136,11 +144,11 @@ export default function Compliance() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="table-th">Company</th>
-                  <th className="table-th">Contact</th>
-                  <th className="table-th">Tax ID</th>
-                  <th className="table-th">Status</th>
-                  <th className="table-th">Actions</th>
+                  <th scope="col" className="table-th">Company</th>
+                  <th scope="col" className="table-th">Contact</th>
+                  <th scope="col" className="table-th">Tax ID</th>
+                  <th scope="col" className="table-th">Status</th>
+                  <th scope="col" className="table-th">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -152,13 +160,14 @@ export default function Compliance() {
                     <td className="table-td font-mono text-xs">{c.taxId || '—'}</td>
                     <td className="table-td"><StatusBadge status={c.complianceStatus} /></td>
                     <td className="table-td">
-                      <div className="flex gap-2">
+                      <div className="flex gap-1">
                         {['Verified', 'Pending', 'Rejected'].filter(s => s !== c.complianceStatus).map(s => (
                           <button
                             key={s}
                             disabled={updatingId === c._id}
                             onClick={() => updateComplianceStatus(c._id, s)}
-                            className={`text-xs hover:underline disabled:opacity-50 ${s === 'Verified' ? 'text-emerald-600' : s === 'Rejected' ? 'text-red-500' : 'text-gray-500'}`}
+                            aria-label={`Set ${c.companyName} compliance status to ${s}`}
+                            className={`btn btn-ghost btn-xs min-h-[36px] disabled:opacity-50 ${s === 'Verified' ? 'text-emerald-600 hover:bg-emerald-50' : s === 'Rejected' ? 'text-red-500 hover:bg-red-50' : 'text-gray-500'}`}
                           >
                             {s}
                           </button>

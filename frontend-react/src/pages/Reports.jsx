@@ -5,6 +5,7 @@ import {
 } from 'recharts';
 import api from '../api/client';
 import Layout from '../components/Layout';
+import ErrorState from '../components/ErrorState';
 import { formatCurrency } from '../utils/format';
 import toast from 'react-hot-toast';
 
@@ -23,22 +24,25 @@ export default function Reports() {
   const [tab, setTab] = useState('sales');
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(false);
+  const [tabErrors, setTabErrors] = useState({});
+
+  const loadTab = async (t) => {
+    setLoading(true);
+    setTabErrors(prev => ({ ...prev, [t]: null }));
+    try {
+      const res = await api.get(`/reports/${t}`);
+      setData(prev => ({ ...prev, [t]: res.data?.data ?? [] }));
+    } catch (err) {
+      setTabErrors(prev => ({ ...prev, [t]: err.message || 'Failed to load report' }));
+      setData(prev => ({ ...prev, [t]: [] }));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (data[tab] !== undefined) return;
-    const load = async () => {
-      setLoading(true);
-      try {
-        const res = await api.get(`/reports/${tab}`);
-        setData(prev => ({ ...prev, [tab]: res.data?.data ?? [] }));
-      } catch {
-        toast.error('Failed to load report');
-        setData(prev => ({ ...prev, [tab]: [] }));
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    loadTab(tab);
   }, [tab]);
 
   const handleExportCSV = async () => {
@@ -76,10 +80,14 @@ export default function Reports() {
         ))}
       </div>
 
-      {loading && <div className="flex items-center justify-center h-64 text-gray-400">Loading report…</div>}
+      {loading && <div className="flex items-center justify-center h-64 text-gray-400" aria-live="polite" aria-label="Loading report">Loading report…</div>}
+
+      {!loading && tabErrors[tab] && (
+        <ErrorState message={tabErrors[tab]} onRetry={() => { setData(p => { const n = {...p}; delete n[tab]; return n; }); loadTab(tab); }} />
+      )}
 
       {/* SALES */}
-      {!loading && tab === 'sales' && (
+      {!loading && !tabErrors[tab] && tab === 'sales' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="card p-5 text-center">
@@ -114,7 +122,7 @@ export default function Reports() {
 
       {/* TOP CUSTOMERS */}
       {/* API: [{ _id, companyName, totalSpend, orders }] */}
-      {!loading && tab === 'top-customers' && (
+      {!loading && !tabErrors[tab] && tab === 'top-customers' && (
         <div className="card overflow-hidden">
           <div className="card-header">Top Customers by Revenue</div>
           {!Array.isArray(d) || d.length === 0 ? (
@@ -123,10 +131,10 @@ export default function Reports() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead><tr className="border-b border-gray-100">
-                  <th className="table-th">Rank</th>
-                  <th className="table-th">Customer</th>
-                  <th className="table-th">Orders</th>
-                  <th className="table-th">Revenue</th>
+                  <th scope="col" className="table-th">Rank</th>
+                  <th scope="col" className="table-th">Customer</th>
+                  <th scope="col" className="table-th">Orders</th>
+                  <th scope="col" className="table-th">Revenue</th>
                 </tr></thead>
                 <tbody>
                   {d.map((c, i) => (
@@ -146,7 +154,7 @@ export default function Reports() {
 
       {/* INVENTORY TURNOVER */}
       {/* API: [{ _id, name, inventoryLevel, reorderThreshold, price, unitOfMeasure }] */}
-      {!loading && tab === 'inventory-turnover' && (
+      {!loading && !tabErrors[tab] && tab === 'inventory-turnover' && (
         <div className="card overflow-hidden">
           <div className="card-header">Inventory Levels</div>
           {!Array.isArray(d) || d.length === 0 ? (
@@ -168,16 +176,16 @@ export default function Reports() {
               <div className="overflow-x-auto border-t border-gray-100">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b border-gray-100">
-                    <th className="table-th">Product</th>
-                    <th className="table-th">Stock</th>
-                    <th className="table-th">Min Threshold</th>
-                    <th className="table-th">Unit</th>
-                    <th className="table-th">Price</th>
+                    <th scope="col" className="table-th">Product</th>
+                    <th scope="col" className="table-th">Stock</th>
+                    <th scope="col" className="table-th">Min Threshold</th>
+                    <th scope="col" className="table-th">Unit</th>
+                    <th scope="col" className="table-th">Price</th>
                   </tr></thead>
                   <tbody>
                     {d.map(p => (
                       <tr key={p._id} className="table-row">
-                        <td className="table-td font-medium">{p.name}</td>
+                        <td className="table-td font-medium max-w-[160px] truncate" title={p.name}>{p.name || '—'}</td>
                         <td className={`table-td font-semibold ${p.inventoryLevel <= p.reorderThreshold ? 'text-red-600' : 'text-gray-800'}`}>{p.inventoryLevel}</td>
                         <td className="table-td text-gray-500">{p.reorderThreshold}</td>
                         <td className="table-td text-gray-500">{p.unitOfMeasure}</td>
@@ -194,7 +202,7 @@ export default function Reports() {
 
       {/* EXPIRATION RISK */}
       {/* API: [] (batches expiring soon) */}
-      {!loading && tab === 'expiration-risk' && (
+      {!loading && !tabErrors[tab] && tab === 'expiration-risk' && (
         <div className="card overflow-hidden">
           <div className="card-header">Batches Expiring Within 60 Days</div>
           {!Array.isArray(d) || d.length === 0 ? (
@@ -237,7 +245,7 @@ export default function Reports() {
 
       {/* OUTSTANDING RECEIVABLES */}
       {/* API: [invoices...] */}
-      {!loading && tab === 'outstanding-receivables' && (
+      {!loading && !tabErrors[tab] && tab === 'outstanding-receivables' && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="card p-5 text-center">
@@ -288,7 +296,7 @@ export default function Reports() {
 
       {/* HAZMAT SALES */}
       {/* API: [{ _id, name, hazardClass, totalRevenue, totalQty }] */}
-      {!loading && tab === 'hazmat-sales' && (
+      {!loading && !tabErrors[tab] && tab === 'hazmat-sales' && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="card p-5 text-center">
@@ -327,7 +335,7 @@ export default function Reports() {
                   <tbody>
                     {d.map(p => (
                       <tr key={p._id} className="table-row">
-                        <td className="table-td font-medium">{p.name}</td>
+                        <td className="table-td font-medium max-w-[160px] truncate" title={p.name}>{p.name || '—'}</td>
                         <td className="table-td text-gray-500">{p.hazardClass ?? '—'}</td>
                         <td className="table-td">{p.totalQty}</td>
                         <td className="table-td font-semibold">{formatCurrency(p.totalRevenue)}</td>

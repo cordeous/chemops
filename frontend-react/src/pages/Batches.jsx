@@ -3,6 +3,7 @@ import api from '../api/client';
 import Layout from '../components/Layout';
 import Modal from '../components/Modal';
 import ConfirmDialog from '../components/ConfirmDialog';
+import ErrorState from '../components/ErrorState';
 import { formatDate } from '../utils/format';
 import toast from 'react-hot-toast';
 
@@ -29,9 +30,11 @@ export default function Batches() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [confirmId, setConfirmId] = useState(null);
+  const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const [bRes, pRes] = await Promise.all([
         api.get('/batches', { params: filterProduct ? { productId: filterProduct } : {} }),
@@ -39,7 +42,7 @@ export default function Batches() {
       ]);
       setBatches(Array.isArray(bRes.data?.data) ? bRes.data.data : []);
       setProducts(Array.isArray(pRes.data?.data) ? pRes.data.data : []);
-    } catch { toast.error('Failed to load batches'); }
+    } catch (err) { setError(err.message || 'Failed to load batches'); }
     finally { setLoading(false); }
   }, [filterProduct]);
 
@@ -91,6 +94,8 @@ export default function Batches() {
       title="Batches"
       actions={<button onClick={openAdd} className="btn btn-accent">+ Add Batch</button>}
     >
+      {error && <ErrorState message={error} onRetry={load} />}
+
       <div className="filter-bar">
         <select className="select max-w-xs" value={filterProduct} onChange={e => setFilterProduct(e.target.value)}>
           <option value="">All products</option>
@@ -103,28 +108,36 @@ export default function Batches() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="table-th">Batch #</th>
-                <th className="table-th">Product</th>
-                <th className="table-th">Quantity</th>
-                <th className="table-th">Location</th>
-                <th className="table-th">Expiration</th>
-                <th className="table-th"></th>
+                <th scope="col" className="table-th">Batch #</th>
+                <th scope="col" className="table-th">Product</th>
+                <th scope="col" className="table-th">Quantity</th>
+                <th scope="col" className="table-th">Location</th>
+                <th scope="col" className="table-th">Expiration</th>
+                <th scope="col" className="table-th"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
-            <tbody>
-              {loading && <tr><td colSpan={6} className="py-12 text-center text-gray-400">Loading…</td></tr>}
-              {!loading && batches.length === 0 && <tr><td colSpan={6} className="py-12 text-center text-gray-400">No batches found</td></tr>}
+            <tbody aria-live="polite" aria-busy={loading}>
+              {loading && <tr><td colSpan={6} className="py-12 text-center text-gray-400" aria-label="Loading batches">Loading…</td></tr>}
+              {!loading && batches.length === 0 && (
+                <tr><td colSpan={6} className="py-12 text-center text-gray-400">
+                  <div className="flex flex-col items-center gap-2">
+                    <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                    <span className="text-sm">No batches found</span>
+                    <button onClick={openAdd} className="btn btn-accent btn-sm mt-1">Add your first batch</button>
+                  </div>
+                </td></tr>
+              )}
               {batches.map(b => (
                 <tr key={b._id} className="table-row">
-                  <td className="table-td font-mono font-medium">{b.batchNumber}</td>
-                  <td className="table-td">{b.productId?.name ?? '—'}</td>
-                  <td className="table-td">{b.quantity} {b.productId?.unitOfMeasure}</td>
-                  <td className="table-td text-gray-500">{b.warehouseLocation || '—'}</td>
+                  <td className="table-td font-mono font-medium max-w-[120px] truncate" title={b.batchNumber}>{b.batchNumber || '—'}</td>
+                  <td className="table-td max-w-[160px] truncate" title={b.productId?.name}>{b.productId?.name ?? '—'}</td>
+                  <td className="table-td">{b.quantity ?? 0} {b.productId?.unitOfMeasure}</td>
+                  <td className="table-td text-gray-500 max-w-[120px] truncate" title={b.warehouseLocation}>{b.warehouseLocation || '—'}</td>
                   <td className="table-td">{expiryBadge(b.expirationDate)}</td>
                   <td className="table-td">
-                    <div className="flex gap-2">
-                      <button onClick={() => openEdit(b)} className="text-xs text-[#1a2e5a] hover:underline">Edit</button>
-                      <button onClick={() => setConfirmId(b._id)} className="text-xs text-red-400 hover:underline">Delete</button>
+                    <div className="flex gap-1">
+                      <button onClick={() => openEdit(b)} className="btn btn-ghost btn-xs min-h-[36px]" aria-label={`Edit batch ${b.batchNumber}`}>Edit</button>
+                      <button onClick={() => setConfirmId(b._id)} className="btn btn-ghost btn-xs min-h-[36px] text-red-400 hover:text-red-600 hover:bg-red-50" aria-label={`Delete batch ${b.batchNumber}`}>Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -155,7 +168,7 @@ export default function Batches() {
             </div>
             <div>
               <label className="label">Batch Number *</label>
-              <input className="input font-mono" value={form.batchNumber} onChange={f('batchNumber')} required />
+              <input className="input font-mono" value={form.batchNumber} onChange={f('batchNumber')} required maxLength={50} />
             </div>
             <div>
               <label className="label">Quantity *</label>
@@ -167,7 +180,7 @@ export default function Batches() {
             </div>
             <div>
               <label className="label">Warehouse Location</label>
-              <input className="input" placeholder="Aisle B, Shelf 3" value={form.warehouseLocation} onChange={f('warehouseLocation')} />
+              <input className="input" placeholder="Aisle B, Shelf 3" value={form.warehouseLocation} onChange={f('warehouseLocation')} maxLength={100} />
             </div>
           </div>
           <div className="modal-footer">

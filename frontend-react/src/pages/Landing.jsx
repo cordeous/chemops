@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -91,7 +91,7 @@ function DashboardMockup({ role }) {
   const heights = [40, 65, 50, 80, 55, 70];
 
   return (
-    <svg viewBox="0 0 360 220" className="w-full rounded-xl" style={{ filter: 'drop-shadow(0 4px 24px rgba(0,0,0,0.10))' }}>
+    <svg viewBox="0 0 360 220" className="w-full rounded-xl" aria-hidden="true" style={{ filter: 'drop-shadow(0 4px 24px rgba(0,0,0,0.10))' }}>
       {/* bg */}
       <rect width="360" height="220" rx="12" fill="white" />
       {/* topbar */}
@@ -143,6 +143,7 @@ export default function Landing() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const heroRef = useRef(null);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     if (user) navigate('/dashboard', { replace: true });
@@ -159,10 +160,10 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
       {/* NAV */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/85 backdrop-blur-md border-b border-gray-100">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/85 backdrop-blur-md border-b border-gray-100" aria-label="Main">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#1a2e5a] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-[#1a2e5a] flex items-center justify-center" aria-hidden="true">
               <span className="text-white text-xs font-bold tracking-tight">CO</span>
             </div>
             <span className="font-bold text-[#1a2e5a] text-lg tracking-tight">ChemOps</span>
@@ -171,24 +172,50 @@ export default function Landing() {
             <a href="#features" className="text-sm text-gray-500 hover:text-[#1a2e5a] transition-colors hidden sm:block font-medium">Features</a>
             <a href="#dashboards" className="text-sm text-gray-500 hover:text-[#1a2e5a] transition-colors hidden sm:block font-medium">Dashboards</a>
             <a href="#roles" className="text-sm text-gray-500 hover:text-[#1a2e5a] transition-colors hidden sm:block font-medium">Roles</a>
-            <button onClick={() => navigate('/login')} className="px-4 py-2 text-sm font-semibold rounded-lg bg-[#1a2e5a] text-white hover:bg-[#243d73] transition-colors">
+            <button
+              onClick={() => navigate('/login')}
+              aria-label="Sign in to ChemOps"
+              className="px-4 py-2 text-sm font-semibold rounded-lg bg-[#1a2e5a] text-white hover:bg-[#243d73] transition-colors"
+            >
               Sign In
+            </button>
+            {/* Mobile hamburger */}
+            <button
+              onClick={() => setMobileNavOpen(v => !v)}
+              className="sm:hidden w-9 h-9 flex items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+              aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileNavOpen}
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                {mobileNavOpen
+                  ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  : <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                }
+              </svg>
             </button>
           </div>
         </div>
+        {/* Mobile dropdown nav */}
+        {mobileNavOpen && (
+          <div className="sm:hidden bg-white border-t border-gray-100 px-6 py-4 space-y-3">
+            <a href="#features" onClick={() => setMobileNavOpen(false)} className="block text-sm text-gray-700 font-medium py-2">Features</a>
+            <a href="#dashboards" onClick={() => setMobileNavOpen(false)} className="block text-sm text-gray-700 font-medium py-2">Dashboards</a>
+            <a href="#roles" onClick={() => setMobileNavOpen(false)} className="block text-sm text-gray-700 font-medium py-2">Roles</a>
+          </div>
+        )}
       </nav>
 
       {/* HERO */}
       <section ref={heroRef} className="relative pt-36 pb-28 px-6 overflow-hidden"
         style={{ background: 'linear-gradient(135deg, #0f1d3a 0%, #1a2e5a 50%, #243d73 100%)' }}>
-        <div className="absolute inset-0 opacity-10"
+        <div className="absolute inset-0 opacity-10" aria-hidden="true"
           style={{ backgroundImage: 'linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)', backgroundSize: '48px 48px' }} />
-        <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #f07c1e, transparent)', transform: 'translate(30%, -30%)' }} />
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-10" aria-hidden="true" style={{ background: 'radial-gradient(circle, #f07c1e, transparent)', transform: 'translate(30%, -30%)' }} />
 
         <div className="relative max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 mb-6">
-              <span className="w-2 h-2 rounded-full bg-[#f07c1e] animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-[#f07c1e] animate-pulse" aria-hidden="true" />
               <span className="text-white/80 text-xs font-medium tracking-widest uppercase">Chemical Sales and Billing Platform</span>
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white mb-6 leading-tight">
@@ -199,7 +226,11 @@ export default function Landing() {
               The all-in-one platform for chemical distributors — inventory, orders, invoices, compliance tracking, and role-based dashboards with real analytics.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button onClick={() => navigate('/login')} className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#f07c1e] text-white font-semibold text-base hover:bg-[#d96b10] transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0">
+              <button
+                onClick={() => navigate('/login')}
+                aria-label="Launch the ChemOps app"
+                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#f07c1e] text-white font-semibold text-base hover:bg-[#d96b10] transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 will-change-transform"
+              >
                 Launch App
               </button>
               <a href="#dashboards" className="w-full sm:w-auto px-8 py-3.5 rounded-xl border border-white/25 text-white font-medium text-base hover:bg-white/10 transition-colors text-center">
@@ -229,7 +260,7 @@ export default function Landing() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {FEATURES.map(feat => (
-              <div key={feat.title} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 group">
+              <div key={feat.title} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 group will-change-transform">
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 transition-colors" style={{ background: feat.color + '12', color: feat.color }}>
                   {feat.icon}
                 </div>
@@ -303,7 +334,7 @@ export default function Landing() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {ROLES.map(r => (
-              <div key={r.role} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200">
+              <div key={r.role} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 will-change-transform">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold" style={{ background: r.color }}>
                     {r.role[0]}
@@ -325,7 +356,7 @@ export default function Landing() {
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Ready to streamline operations?</h2>
           <p className="text-white/70 mb-10 text-lg">Sign in with any demo account and explore every feature.</p>
-          <button onClick={() => navigate('/login')} className="px-10 py-4 rounded-xl bg-[#f07c1e] text-white font-semibold text-lg hover:bg-[#d96b10] transition-all shadow-lg hover:-translate-y-0.5">
+          <button onClick={() => navigate('/login')} aria-label="Get started — sign in to ChemOps" className="px-10 py-4 rounded-xl bg-[#f07c1e] text-white font-semibold text-lg hover:bg-[#d96b10] transition-all shadow-lg hover:-translate-y-0.5 will-change-transform">
             Get Started Free
           </button>
           <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-lg mx-auto">

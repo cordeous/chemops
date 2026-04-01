@@ -3,6 +3,7 @@ import api from '../api/client';
 import Layout from '../components/Layout';
 import Modal from '../components/Modal';
 import StatusBadge from '../components/StatusBadge';
+import ErrorState from '../components/ErrorState';
 import { formatCurrency } from '../utils/format';
 import toast from 'react-hot-toast';
 
@@ -23,17 +24,19 @@ export default function Products() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [importInput, setImportInput] = useState(null);
+  const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const params = {};
       if (search) params.search = search;
       if (filterHazardous !== '') params.isHazardous = filterHazardous;
       const res = await api.get('/products', { params });
       setProducts(Array.isArray(res.data?.data) ? res.data.data : []);
-    } catch {
-      toast.error('Failed to load products');
+    } catch (err) {
+      setError(err.message || 'Failed to load products');
     } finally {
       setLoading(false);
     }
@@ -148,33 +151,41 @@ export default function Products() {
         </select>
       </div>
 
+      {error && <ErrorState message={error} onRetry={load} />}
+
       {/* Table */}
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="table-th">Product</th>
-                <th className="table-th">CAS #</th>
-                <th className="table-th">Hazard</th>
-                <th className="table-th">Inventory</th>
-                <th className="table-th">Price</th>
-                <th className="table-th">SDS</th>
-                <th className="table-th">Status</th>
-                <th className="table-th"></th>
+                <th scope="col" className="table-th">Product</th>
+                <th scope="col" className="table-th">CAS #</th>
+                <th scope="col" className="table-th">Hazard</th>
+                <th scope="col" className="table-th">Inventory</th>
+                <th scope="col" className="table-th">Price</th>
+                <th scope="col" className="table-th">SDS</th>
+                <th scope="col" className="table-th">Status</th>
+                <th scope="col" className="table-th"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
-            <tbody>
+            <tbody aria-live="polite" aria-busy={loading}>
               {loading && (
-                <tr><td colSpan={8} className="py-12 text-center text-gray-400">Loading…</td></tr>
+                <tr><td colSpan={8} className="py-12 text-center text-gray-400" aria-label="Loading products">Loading…</td></tr>
               )}
               {!loading && products.length === 0 && (
-                <tr><td colSpan={8} className="py-12 text-center text-gray-400">No products found</td></tr>
+                <tr><td colSpan={8} className="py-12 text-center text-gray-400">
+                  <div className="flex flex-col items-center gap-2">
+                    <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10" /></svg>
+                    <span className="text-sm">No products found</span>
+                    <button onClick={openAdd} className="btn btn-accent btn-sm mt-1">Add your first product</button>
+                  </div>
+                </td></tr>
               )}
               {products.map(p => (
                 <tr key={p._id} className={`table-row ${p.isArchived ? 'opacity-50' : ''}`}>
-                  <td className="table-td">
-                    <div className="font-medium text-gray-900">{p.name}</div>
+                  <td className="table-td max-w-[200px]">
+                    <div className="font-medium text-gray-900 truncate" title={p.name}>{p.name || '—'}</div>
                     <div className="text-xs text-gray-400">{p.unitOfMeasure}</div>
                   </td>
                   <td className="table-td text-gray-500 font-mono text-xs">{p.CASNumber || '—'}</td>
@@ -204,9 +215,9 @@ export default function Products() {
                     </span>
                   </td>
                   <td className="table-td">
-                    <div className="flex gap-2">
-                      <button onClick={() => openEdit(p)} className="text-xs text-[#1a2e5a] hover:underline">Edit</button>
-                      <button onClick={() => toggleArchive(p)} className="text-xs text-gray-400 hover:underline">
+                    <div className="flex gap-1">
+                      <button onClick={() => openEdit(p)} className="btn btn-ghost btn-xs min-h-[36px]" aria-label={`Edit ${p.name}`}>Edit</button>
+                      <button onClick={() => toggleArchive(p)} className="btn btn-ghost btn-xs min-h-[36px] text-gray-400" aria-label={`${p.isArchived ? 'Restore' : 'Archive'} ${p.name}`}>
                         {p.isArchived ? 'Restore' : 'Archive'}
                       </button>
                     </div>
@@ -229,19 +240,19 @@ export default function Products() {
           <div className="modal-body grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
               <label className="label">Product Name *</label>
-              <input className="input" value={form.name} onChange={f('name')} required />
+              <input className="input" value={form.name} onChange={f('name')} required maxLength={200} />
             </div>
             <div>
               <label className="label">CAS Number</label>
-              <input className="input font-mono" placeholder="7647-01-0" value={form.CASNumber} onChange={f('CASNumber')} />
+              <input className="input font-mono" placeholder="7647-01-0" value={form.CASNumber} onChange={f('CASNumber')} maxLength={20} />
             </div>
             <div>
               <label className="label">UN Number</label>
-              <input className="input font-mono" placeholder="UN1789" value={form.UNNumber} onChange={f('UNNumber')} />
+              <input className="input font-mono" placeholder="UN1789" value={form.UNNumber} onChange={f('UNNumber')} maxLength={10} />
             </div>
             <div>
               <label className="label">Hazard Classification</label>
-              <input className="input" placeholder="Class 8 Corrosive" value={form.hazardClassification} onChange={f('hazardClassification')} />
+              <input className="input" placeholder="Class 8 Corrosive" value={form.hazardClassification} onChange={f('hazardClassification')} maxLength={100} />
             </div>
             <div>
               <label className="label">Unit of Measure</label>
@@ -269,7 +280,7 @@ export default function Products() {
             </div>
             <div className="sm:col-span-2">
               <label className="label">Storage Requirements</label>
-              <input className="input" placeholder="Store in cool, dry place away from direct sunlight" value={form.storageRequirements} onChange={f('storageRequirements')} />
+              <input className="input" placeholder="Store in cool, dry place away from direct sunlight" value={form.storageRequirements} onChange={f('storageRequirements')} maxLength={500} />
             </div>
             <div className="sm:col-span-2">
               <label className="label">SDS Document URL</label>

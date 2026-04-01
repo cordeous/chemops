@@ -30,47 +30,51 @@ export default function Login() {
       <div className="w-full max-w-md">
         {/* Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#f07c1e] mb-4 shadow-lg">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#f07c1e] mb-4 shadow-lg" aria-hidden="true">
             <span className="text-3xl">⚗️</span>
           </div>
           <h1 className="text-3xl font-bold text-white">ChemOps</h1>
-          <p className="text-white/60 text-sm mt-1">Chemical Sales & Billing Platform</p>
+          <p className="text-white/60 text-sm mt-1">Chemical Sales &amp; Billing Platform</p>
           <Link to="/" className="text-white/40 text-xs hover:text-white/70 transition-colors mt-2 inline-block">
             &larr; Back to home
           </Link>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+        <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8">
           <h2 className="text-xl font-semibold text-gray-800 mb-6">Sign in to your account</h2>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4">
+            <div role="alert" className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div>
-              <label className="label">Email address</label>
+              <label htmlFor="login-email" className="label">Email address</label>
               <input
+                id="login-email"
                 type="email"
                 className="input"
                 placeholder="you@chemops.com"
                 value={form.email}
                 onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                 required
+                autoComplete="email"
               />
             </div>
             <div>
-              <label className="label">Password</label>
+              <label htmlFor="login-password" className="label">Password</label>
               <input
+                id="login-password"
                 type="password"
                 className="input"
                 placeholder="••••••••"
                 value={form.password}
                 onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                 required
+                autoComplete="current-password"
               />
             </div>
             <button type="submit" className="btn btn-primary w-full mt-2" disabled={loading}>
@@ -92,7 +96,8 @@ export default function Login() {
                   key={label}
                   type="button"
                   onClick={() => fillDemo(email, pwd)}
-                  className="text-left px-3 py-2 rounded-lg bg-white border border-gray-200 hover:border-[#f07c1e] hover:bg-orange-50 transition-colors"
+                  aria-label={`Fill demo credentials for ${label} role`}
+                  className="text-left px-3 py-2 rounded-lg bg-white border border-gray-200 hover:border-[#f07c1e] hover:bg-orange-50 transition-colors min-h-[44px]"
                 >
                   <div className="text-xs font-semibold text-[#1a2e5a]">{label}</div>
                   <div className="text-xs text-gray-400 truncate">{email}</div>
