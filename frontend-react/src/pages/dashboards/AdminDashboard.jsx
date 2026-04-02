@@ -13,13 +13,10 @@ const ROLE_COLORS = { Admin: '#f07c1e', Sales: '#3b82f6', Finance: '#10b981', Co
 
 function StatCard({ label, value, sub, color }) {
   return (
-    <div className="card p-5">
+    <div className="card p-5" style={{ borderTop: '3px solid ' + color }}>
       <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{label}</div>
       <div className="text-2xl font-bold text-gray-900">{value}</div>
       {sub && <div className="text-xs text-gray-400 mt-1">{sub}</div>}
-      <div className="mt-3 h-1 rounded-full bg-gray-100">
-        <div className="h-1 rounded-full" style={{ width: '65%', background: color }} />
-      </div>
     </div>
   );
 }
@@ -214,13 +211,17 @@ export default function AdminDashboard() {
             <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Quick Actions</div>
             <div className="space-y-2">
               {[
-                { to: '/admin', label: 'Manage Users', icon: '👤' },
-                { to: '/admin', label: 'Feature Flags', icon: '🔧' },
-                { to: '/compliance', label: 'Compliance', icon: '🛡' },
-                { to: '/reports', label: 'Analytics', icon: '📊' },
+                { to: '/admin', label: 'Manage Users', path: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0' },
+                { to: '/admin', label: 'Feature Flags', path: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+                { to: '/compliance', label: 'Compliance', path: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
+                { to: '/reports', label: 'Analytics', path: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
               ].map(a => (
                 <Link key={a.label} to={a.to} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50 hover:bg-blue-50 hover:text-[#1a2e5a] transition-colors group">
-                  <span className="text-sm">{a.icon}</span>
+                  <svg className="w-4 h-4 text-gray-400 group-hover:text-[#1a2e5a] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
+                    {a.path.split(' M').map((d, i) => (
+                      <path key={i} strokeLinecap="round" strokeLinejoin="round" d={i === 0 ? d : 'M' + d} />
+                    ))}
+                  </svg>
                   <span className="text-sm font-medium text-gray-700 group-hover:text-[#1a2e5a]">{a.label}</span>
                 </Link>
               ))}

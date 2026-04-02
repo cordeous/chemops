@@ -52,7 +52,9 @@ export default function Sidebar({ open, onClose }) {
         {/* Brand */}
         <div className="px-5 pt-6 pb-5 border-b border-white/8 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base" style={{ background: '#f07c1e' }} aria-hidden="true">⚗️</div>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#f07c1e' }} aria-hidden="true">
+                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 10V11" /></svg>
+              </div>
             <div>
               <div className="text-sm font-bold text-white tracking-wide">Chem<span style={{ color: '#f07c1e' }}>Ops</span></div>
               <div className="text-[10px] text-white/35 leading-tight">Sales & Billing Platform</div>
